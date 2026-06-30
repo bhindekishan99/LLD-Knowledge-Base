@@ -419,6 +419,12 @@ Instead of extending the design,
 
 we keep changing the same class repeatedly.
 
+## Dependency Inversion Principle (DIP)
+
+The YoutubeChannel class has direct dependencies on concrete implementations(Subscriber)
+
+Tight coupling to specific implementations: The YoutubeChannel class is tightly coupled to the specific implementations(Subscriber), making it difficult to change or replace them.
+
 ---
 
 # 8. How To Think Towards The Observer Pattern
