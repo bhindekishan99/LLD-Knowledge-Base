@@ -1,6 +1,7 @@
 Here is the entire design formatted as a clean, copy-pasteable Markdown block. You can copy the code block below and save it directly as a .md file (e.g., ParkingLotLLD.md). [1, 2] 
 
-# Low-Level Design (LLD): Parking Lot System## 1. Enums & Core Entities
+# Low-Level Design (LLD): Parking Lot System
+## 1. Enums & Core Entities
 ### `VehicleSize` (Enum)
 * `SMALL`
 * `MEDIUM`
@@ -15,7 +16,8 @@ Here is the entire design formatted as a clean, copy-pasteable Markdown block. Y
 ### Concrete Vehicles* **`Bike`** (Extends `Vehicle` → sets `vehicleSize = VehicleSize.SMALL`)
 * **`Car`** (Extends `Vehicle` → sets `vehicleSize = VehicleSize.MEDIUM`)
 * **`Truck`** (Extends `Vehicle` → sets `vehicleSize = VehicleSize.LARGE`)
----## 2. Infrastructure & Layout
+---
+## 2. Infrastructure & Layout
 ### `ParkingSlot` (Class)* **Members:**
   * `slotNumber: String`
   * `vehicleSize: VehicleSize`
@@ -36,7 +38,8 @@ Here is the entire design formatted as a clean, copy-pasteable Markdown block. Y
   * `floors: List<ParkingFloor>`* **Methods:**
   * `static getInstance(): ParkingLot`
   * `addParkingFloor(floor: ParkingFloor): Void`
----## 3. Core Strategy Interfaces & Implementations### Parking Strategy (Strategy Pattern)Determines **where** a vehicle should be placed based on specific rules.
+---
+## 3. Core Strategy Interfaces & Implementations### Parking Strategy (Strategy Pattern)Determines **where** a vehicle should be placed based on specific rules.
 * **`ParkingStrategy` (Interface)**
   * `findSlot(lot: ParkingLot, vehicle: Vehicle): ParkingSlot`
 * **`NearestParkingStrategy`** (Implements `ParkingStrategy`)
@@ -52,7 +55,8 @@ Here is the entire design formatted as a clean, copy-pasteable Markdown block. Y
   * Computes cost based purely on elapsed duration and `VehicleSize`.
 * **`PeakHourFeeStrategy`** (Implements `FeeStrategy`)
   * Computes cost based on duration, `VehicleSize`, and dynamic peak-hour surges.
----## 4. Scalable Payment Subsystem
+---
+## 4. Scalable Payment Subsystem
 ### `Payment` (Class)
 *Encapsulates transactional metadata, decoupling payment logic from the core Vehicle lifecycle.** **Members:**
   * `amount: Double`
@@ -67,7 +71,8 @@ Here is the entire design formatted as a clean, copy-pasteable Markdown block. Y
 * **`CardPaymentStrategy`** → Processes credit/debit transactions.
 * **`UPIPaymentStrategy`** → Processes instant mobile/QR payments.
 * **`CashPaymentStrategy`** → Processes physical currency tracking at the counter.
----## 5. Operations & System Orchestration
+---
+## 5. Operations & System Orchestration
 ### `Ticket` (Class)* **Members:**
   * `ticketId: String`
   * `parkingSlot: ParkingSlot`
