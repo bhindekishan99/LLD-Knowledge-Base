@@ -1,0 +1,105 @@
+Entity:
+
+    Vehicle, ParkingSlot, ParkingFloor, ParkingSlot
+
+Enum:
+    VehicleSize
+
+Vehicle - abstract class
+    members: vehiclesize, licenseNumber, PaymentStrategy
+    methods: constructor,getters
+
+Bike - class extends Vehicle
+    vehicleSize = VehicleSize.SMALL
+
+Bike - class extends Vehicle
+    vehicleSize = VehicleSize.MEDIUM
+
+Bike - class extends Vehicle
+    vehicleSize = VehicleSize.LARGE
+
+ParkingSlot - class
+    members: VehicleSize, Vehicle, #slotNumber
+    methods: constructor, isAvailable, ParkVehicle(vehicle){Vehicle=vehicle}, #unParkVehicle(vehicle)
+
+ParkingFloor - class
+    members: floorNumber, List of ParkingSlots
+    Methods: constructor, addParkingSlot(Slot)
+
+ParkingLot - class (single instance, singleton pattern)
+    members: Static Instance, List of ParkingFloors
+    Methods: addParkingFloor(floor)
+
+ParkingStrategy - Interface
+    ParkVehicle(Lot,Vehicle) - return parkingLotReference
+
+NearestParkingStrategy - class implements ParkingStrategy
+    ParkVehicle(Lot,Vehicle) - park in first empty slot of nearest floor
+
+FarestParkingStrategy - class implements ParkingStrategy
+    ParkVehicle(Lot,Vehicle) - park in first empty slot of last floor
+
+BestParkingStrategy - class implements ParkingStrategy
+    ParkVehicle(Lot,Vehicle) - park in first empty best fitted slot
+
+FeeStategy - Interface
+    methods - calculateFees(vehicle, Ticket)
+
+TimeSizeBasedFeeStrategy - class implements Interface
+    methods - calculateFees(vehicle, Ticket) - calculate based on duration and vehicle size
+
+TimeSizePickHourBasedFeeStrategy - class implements Interface
+    methods - calculateFees(vehicle, Ticket) - calculate based on duration and vehicle size and pickhours
+
+PaymentStrategy - inteface
+    method - processPayment(Fees)
+
+CardPaymentStrategy - implements PaymentStrategy
+    method - processPayment(Fees) - card payment
+
+UPIPaymentStrategy - implements PaymentStrategy
+    method - processPayment(Fees) - UPI payment
+
+CashPaymentStrategy - implements PaymentStrategy
+    method - processPayment(Fees) - Cash payment
+
+Ticket - class
+    members: TicketID, ParkingSlot, Vehicle, EntryTime, ExitTime, Fees, PaymentMethod
+    methods: constructor(ticketId,parkingSlot,vehicle,entryTime), setExitTime, setFees, setPaymentMethod
+    #as of now this is find but in case interviewer ask payment requrirment is increased like we need to 
+    store:amount, paymentStatus, paymentType, transactionID, refund/partial refund so instead of storing fees 
+    and paymentMethod, and instead of storing paymentStrategy in vehicle we store reference of payment class
+    and in payment class we have paymentStrategy, so to pay the fees, vehicle.payment.paymentStrategy.processPayment
+    and to change the PaymentStrategy, vechicle.payment.setPaymentStrategy(paymentStrategy), note here payment class 
+    has members = amount, paymentStatus, paymentType, transactionID etc
+
+
+ParkingLotManager - class - act as a facate of parking lot
+    members - ParkingLot, vehicleToTicket Map, ParkingStrategy
+
+    Methods -   constructor - assign parkingLot singleton instance, creates empty vehicleToTicket Map, assign ParkingStrategy, assign FeeStategy 
+                vehicleEntry(Vechicle) -  
+                    1. ParkingSlot parkedSlot = ParkingStrategy.ParkVehicle(Vehicle);
+                    2. creates ticket(ticketId,parkedSlot,vehicle,entryTime)
+                vehicleExit(Vechicle) - 
+                    1. Ticket ticket = vehicleToTicket(Vehicle)
+                    2. ticket.setExitTime(currnetTime that is exit time)
+                    3. fees = FeeStategy feeStategy.calculateFees(vehicle,ticket)
+                    4. vehicle.processPayment(fees)
+
+Client - class
+    creates ParkingSlots
+    create ParkingFloors - add slots to floors
+    creates parkinglot singleton - add floors
+    creates vehicles - bike1, car1, truck1
+
+    vecicleEntry(bike1)
+    vecicleEntry(car1)
+    vecicleEntry(truck1)
+
+
+
+
+
+
+
