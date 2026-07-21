@@ -1,0 +1,108 @@
+enum VehicleType: car, truck, smallSizeTruck
+enum VehicleStatus: maintance, rented, available
+enum ReservationStatus: cancled, confirmed, pending
+
+Abstract Class Vehicle
+    licenseNumber, VehicleType, basePricePerHour
+
+Class Car extends Vehicle
+
+Class Truck extends Vehicle
+
+
+Class Location:
+    street, area, city, state, contury, pincode
+
+Class Store
+    Location
+    list<vehicle>
+    
+    
+Class reservation
+    vehicle,store,start dateTime,end dateTime,rentFees
+    
+Class ProessPayment
+    amount, PaymentStrategy
+    pay(reservation.fees,paymentStrategy)
+        boolean successFulPayment = paymentStrategy.processPayment(fees)
+        if(successFulPayment) reservation.setStatus(DONE)
+        else reservation.setStaus(Cancle)
+
+Interface PaymentStrategy
+    
+
+Class CreditCardPayment:
+    pay()
+
+
+User
+    userid(adhar card), name, emailid
+
+class reservationManager
+    Reservation reserveVehicle(user,vehicle,startDate,endDate,rentCalculateStrategy){
+        
+        int rentFees = -1;
+        find the store based on location
+            for found store check the vehicle (based on type and model) 
+                if(avaiable)
+                    rentFees = use rentCalculateStrategy(user,vehicle,location,startDate,endDate) and get the amount
+        return reservation(user,vehicle,location,startDate,endDate,rentFees,staus=pending)   
+        }
+    
+Interface Notification
+    sendNotification(Reservation reservation)
+
+Class WhatsAppNotification
+    sendNotification(Reservation reservation){
+        
+    }
+
+Class StoreManage
+    list of stores
+    list of reservation
+    ProessPayment processPayment
+    Notification notification
+    
+    reserveVehicle()
+        reservation currentReservation = reservationManager.reserveVehicle(user,vehicle,startDate,endDate,rentCalculateStrategy) 
+        if(currentReservation is not null)
+            boolean successfulPayment = processPayment.paymentStrategy.pay()
+            if(successfulPayment)
+                currentReservation.getVehicle().setStatus = rented;
+                currentReservation.setStatus = Confirmed;
+            notification.sendNotification(reservation)
+            reservation.add(currentReservation)
+    
+    getAllVehicles()
+        loop through each store 
+            loop throgh each vehicle
+                print vehicle attributes
+
+-----Google Review: ----
+
+1. Architectural & Design Pattern ViolationsGod Class Antipattern (StoreManage): 
+    Your manager class handles storage, query inventory, processes payments, fires notifications, and 
+    handles business coordination. 
+    It breaks the Single Responsibility Principle (SRP).
+    Broken Strategy Pattern Implementation: Inside StoreManage, you call processPayment.paymentStrategy.pay(), 
+    however, your strategy interface was empty, and your code never passed critical parameters like amount or 
+    reservation down to the method signature during execution.
+2. Leaky Abstraction (ReservationManager): 
+    The reservation manager is tasked with searching for a store based on a location string.
+    Finding physical assets near coordinates is an inventory lookup problem, not a booking logic responsibility.
+3. State & Concurrency Vulnerabilities (Crucial for Interviews)
+    High Risk of Race Conditions: When a vehicle is identified as available inside ReservationManager, 
+    its status is left completely unchanged until after a payment finishes inside StoreManage. 
+    If two users request the same vehicle at the same second, both will view it as available, both will pay,
+    and your system will double-book the vehicle.Missing Error Handling Rollbacks: If the payment transaction fails, 
+    your design sets the reservation status to cancelled. However, it never rolls the vehicle state back to AVAILABLE,
+    permanently locking the vehicle out of the system.
+4. Missing Core Domain Models & LogicNo Duration or Time Calculations: 
+    Your reservation model takes a start dateTime and end dateTime, but your calculation code fails to compute the 
+    actual delta time (total hours). You cannot run a strategy to calculate payment fees without a time duration 
+    parameter.No Unique Identifier Generation: The design passes around objects without explicit primary keys 
+    (like a reservationId or storeId). In systems execution, you cannot track global transactions or target 
+    specific records without clear unique IDs.
+5. Incomplete Lifecycle Support: 
+    The design covers checking out a vehicle but completely omits the return journey. It lacks infrastructure to 
+    change a status from rented back to available, or calculate penalty fees if a user returns a vehicle late.
