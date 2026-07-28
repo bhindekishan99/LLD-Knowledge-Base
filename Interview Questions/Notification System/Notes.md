@@ -1,5 +1,5 @@
 # Notification System Design
-
+ source: https://programmingappliedai.substack.com/p/lld-design-notification-system
 ## Problem Statement
 
 Design a notification platform similar to the systems used by Amazon, AWS, Netflix, Flipkart, etc.
