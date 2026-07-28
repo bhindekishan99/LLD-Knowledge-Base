@@ -1,8 +1,5 @@
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 // ============================================================
 // 1. PERMISSION
@@ -16,7 +13,6 @@ enum Permission {
 
 // ============================================================
 // 2. COMPONENT - COMPOSITE PATTERN
-// Common abstraction for File and Directory
 // ============================================================
 
 abstract class FileSystemItem {
@@ -43,63 +39,32 @@ abstract class FileSystemItem {
         return creationTime;
     }
 
-    // --------------------------------------------------------
-    // COMPOSITE OPERATION
-    //
-    // File      -> returns its own size
-    // Directory -> recursively returns size of all children
-    // --------------------------------------------------------
+    // File      -> own size
+    // Directory -> recursive size of children
     public abstract int getSize();
 
-    // Another Composite operation
+    // File      -> display itself
+    // Directory -> recursively display subtree
     public abstract void display(String indent);
 
-
-    // --------------------------------------------------------
-    // POSSIBLE FUTURE COMPOSITE OPERATIONS
-    // --------------------------------------------------------
-
-    /*
-     * public abstract void delete();
-     *
-     * File:
-     *      Delete itself
-     *
-     * Directory:
-     *      Recursively delete all children
-     */
-
+    // File      -> copy itself into destination 
+1    // Directory -> recursively copy entire subtree
+    public abstract void copy(Directory destination);
 
     /*
-     * public abstract FileSystemItem copy();
+     * Other operations where Composite can be useful:
      *
-     * File:
-     *      Create copy of itself
+     * changePermission(...)
+     *      File      -> change own permission
+     *      Directory -> recursively change children's permission
      *
-     * Directory:
-     *      Recursively copy complete subtree
-     */
-
-
-    /*
-     * public abstract void moveTo(Directory destination);
+     * search(...)
+     *      File      -> check itself
+     *      Directory -> recursively search children
      *
-     * File:
-     *      Move file
-     *
-     * Directory:
-     *      Move complete directory subtree
-     */
-
-
-    /*
-     * public abstract void changePermission(Permission permission);
-     *
-     * File:
-     *      Change own permission
-     *
-     * Directory:
-     *      Could recursively apply permission to children
+     * delete(...)
+     *      File      -> delete itself
+     *      Directory -> recursively delete subtree
      */
 }
 
@@ -129,18 +94,25 @@ class File extends FileSystemItem {
     }
 
     public void updateContent(String content) {
-
         this.content = content;
-
-        // Size stays consistent with content
         this.size = content.length();
     }
 
-    // Leaf implementation:
-    // File simply returns its own size.
     @Override
     public int getSize() {
         return size;
+    }
+
+    @Override
+    public void copy(Directory destination) {
+
+        File copiedFile = new File(
+                this.name,
+                this.content,
+                this.permission
+        );
+
+        destination.add(copiedFile);
     }
 
     @Override
@@ -159,7 +131,7 @@ class File extends FileSystemItem {
 class Directory extends FileSystemItem {
 
     /*
-     * Name -> FileSystemItem
+     * name -> FileSystemItem
      *
      * Example:
      *
@@ -186,7 +158,6 @@ class Directory extends FileSystemItem {
     public void add(FileSystemItem item) {
 
         if (children.containsKey(item.getName())) {
-
             throw new IllegalArgumentException(
                     "Item already exists: " + item.getName()
             );
@@ -196,16 +167,18 @@ class Directory extends FileSystemItem {
     }
 
 
-    public void remove(String name) {
+    public FileSystemItem remove(String name) {
 
-        if (!children.containsKey(name)) {
+        FileSystemItem removed =
+                children.remove(name);
 
+        if (removed == null) {
             throw new IllegalArgumentException(
                     "Item not found: " + name
             );
         }
 
-        children.remove(name);
+        return removed;
     }
 
 
@@ -215,34 +188,23 @@ class Directory extends FileSystemItem {
 
 
     // --------------------------------------------------------
-    // COMPOSITE OPERATION - GET SIZE
+    // COMPOSITE OPERATION - SIZE
     // --------------------------------------------------------
 
-    /*
-     * Directory doesn't have its own content.
-     *
-     * Its size is calculated by recursively asking every
-     * child for its size.
-     *
-     * The important point:
-     *
-     * We DON'T care whether child is:
-     *
-     *      File
-     *      OR
-     *      Directory
-     *
-     * because both implement:
-     *
-     *      getSize()
-     *
-     * This is the main benefit of Composite Pattern.
-     */
     @Override
     public int getSize() {
 
         int totalSize = 0;
 
+        /*
+         * We don't care whether child is File or Directory.
+         *
+         * File.getSize()
+         *      -> returns own size
+         *
+         * Directory.getSize()
+         *      -> recursively calculates subtree size
+         */
         for (FileSystemItem child : children.values()) {
             totalSize += child.getSize();
         }
@@ -252,12 +214,43 @@ class Directory extends FileSystemItem {
 
 
     // --------------------------------------------------------
+    // COMPOSITE OPERATION - COPY
+    // --------------------------------------------------------
+
+    @Override
+    public void copy(Directory destination) {
+
+        // Create a copy of this directory.
+        Directory copiedDirectory =
+                new Directory(
+                        this.name,
+                        this.permission
+                );
+
+        // Add copied directory to destination.
+        destination.add(copiedDirectory);
+
+        /*
+         * Tell every child:
+         *
+         * "Copy yourself inside copiedDirectory."
+         *
+         * We don't care whether child is File or Directory.
+         */
+        for (FileSystemItem child : children.values()) {
+            child.copy(copiedDirectory);
+        }
+    }
+
+
+    // --------------------------------------------------------
     // RECURSIVE FILE SEARCH
     // --------------------------------------------------------
 
     public List<File> findFile(String fileName) {
 
-        List<File> result = new ArrayList<>();
+        List<File> result =
+                new ArrayList<>();
 
         for (FileSystemItem item : children.values()) {
 
@@ -290,12 +283,6 @@ class Directory extends FileSystemItem {
                 indent + "+ " + name + "/"
         );
 
-        /*
-         * Again, we don't care whether child is File
-         * or Directory.
-         *
-         * Both know how to display themselves.
-         */
         for (FileSystemItem child : children.values()) {
             child.display(indent + "  ");
         }
@@ -305,7 +292,6 @@ class Directory extends FileSystemItem {
 
 // ============================================================
 // 5. FILE MANAGER
-// Coordinates user operations
 // ============================================================
 
 class FileManager {
@@ -315,18 +301,20 @@ class FileManager {
 
     public FileManager() {
 
-        root = new Directory(
-                "root",
-                Permission.READ_WRITE
-        );
+        this.root =
+                new Directory(
+                        "root",
+                        Permission.READ_WRITE
+                );
     }
 
 
     // ========================================================
-    // PATH RESOLUTION
+    // GENERAL PATH RESOLUTION
+    // Can return either File or Directory
     // ========================================================
 
-    private Directory findDirectory(String path) {
+    private FileSystemItem getItem(String path) {
 
         if (path == null ||
                 path.isEmpty() ||
@@ -335,9 +323,11 @@ class FileManager {
             return root;
         }
 
-        String[] parts = path.split("/");
+        String[] parts =
+                path.split("/");
 
-        Directory current = root;
+        FileSystemItem current =
+                root;
 
 
         for (String part : parts) {
@@ -346,22 +336,45 @@ class FileManager {
                 continue;
             }
 
-            FileSystemItem item =
-                    current.getChild(part);
-
-
-            if (!(item instanceof Directory)) {
+            if (!(current instanceof Directory directory)) {
 
                 throw new IllegalArgumentException(
-                        "Directory not found: " + part
+                        "Invalid path: " + path
                 );
             }
 
-            current = (Directory) item;
+            current =
+                    directory.getChild(part);
+
+            if (current == null) {
+
+                throw new IllegalArgumentException(
+                        "Path not found: " + path
+                );
+            }
         }
 
-
         return current;
+    }
+
+
+    // ========================================================
+    // DIRECTORY PATH RESOLUTION
+    // ========================================================
+
+    private Directory findDirectory(String path) {
+
+        FileSystemItem item =
+                getItem(path);
+
+        if (!(item instanceof Directory)) {
+
+            throw new IllegalArgumentException(
+                    "Not a directory: " + path
+            );
+        }
+
+        return (Directory) item;
     }
 
 
@@ -376,13 +389,12 @@ class FileManager {
         Directory parent =
                 findDirectory(path);
 
-        Directory directory =
+        parent.add(
                 new Directory(
                         directoryName,
                         Permission.READ_WRITE
-                );
-
-        parent.add(directory);
+                )
+        );
     }
 
 
@@ -395,7 +407,6 @@ class FileManager {
 
         FileSystemItem item =
                 parent.getChild(directoryName);
-
 
         if (!(item instanceof Directory)) {
 
@@ -421,40 +432,13 @@ class FileManager {
         Directory directory =
                 findDirectory(path);
 
-        File file =
+        directory.add(
                 new File(
                         fileName,
                         content,
                         Permission.READ_WRITE
-                );
-
-        directory.add(file);
-    }
-
-
-    public void updateFile(
-            String path,
-            String fileName,
-            String content) {
-
-        Directory directory =
-                findDirectory(path);
-
-        FileSystemItem item =
-                directory.getChild(fileName);
-
-
-        if (!(item instanceof File)) {
-
-            throw new IllegalArgumentException(
-                    "File not found: " + fileName
-            );
-        }
-
-
-        File file = (File) item;
-
-        file.updateContent(content);
+                )
+        );
     }
 
 
@@ -468,16 +452,36 @@ class FileManager {
         FileSystemItem item =
                 directory.getChild(fileName);
 
-
-        if (!(item instanceof File)) {
+        if (!(item instanceof File file)) {
 
             throw new IllegalArgumentException(
                     "File not found: " + fileName
             );
         }
 
+        return file.getContent();
+    }
 
-        return ((File) item).getContent();
+
+    public void updateFile(
+            String path,
+            String fileName,
+            String newContent) {
+
+        Directory directory =
+                findDirectory(path);
+
+        FileSystemItem item =
+                directory.getChild(fileName);
+
+        if (!(item instanceof File file)) {
+
+            throw new IllegalArgumentException(
+                    "File not found: " + fileName
+            );
+        }
+
+        file.updateContent(newContent);
     }
 
 
@@ -491,14 +495,12 @@ class FileManager {
         FileSystemItem item =
                 directory.getChild(fileName);
 
-
         if (!(item instanceof File)) {
 
             throw new IllegalArgumentException(
                     "File not found: " + fileName
             );
         }
-
 
         directory.remove(fileName);
     }
@@ -509,71 +511,103 @@ class FileManager {
     // ========================================================
 
     public List<File> findFile(String fileName) {
-
         return root.findFile(fileName);
     }
 
 
     // ========================================================
-    // SIZE
+    // GET SIZE
+    // Works for BOTH File and Directory
     // ========================================================
 
     public int getSize(String path) {
 
-        // Root directory
-        if (path == null ||
-                path.isEmpty() ||
-                path.equals("/")) {
-
-            return root.getSize();
-        }
-
-
-        String[] parts = path.split("/");
-
-        FileSystemItem current = root;
-
-
-        for (String part : parts) {
-
-            if (part.isEmpty()) {
-                continue;
-            }
-
-
-            if (!(current instanceof Directory directory)) {
-
-                throw new IllegalArgumentException(
-                        "Invalid path: " + path
-                );
-            }
-
-
-            current =
-                    directory.getChild(part);
-
-
-            if (current == null) {
-
-                throw new IllegalArgumentException(
-                        "Path not found: " + path
-                );
-            }
-        }
-
+        FileSystemItem item =
+                getItem(path);
 
         /*
-         * Composite benefit:
+         * Composite:
          *
-         * We don't care whether current is File or Directory.
-         *
-         * File.getSize()
-         *      -> own size
-         *
-         * Directory.getSize()
-         *      -> recursive subtree size
+         * File      -> own size
+         * Directory -> recursive subtree size
          */
-        return current.getSize();
+        return item.getSize();
+    }
+
+
+    // ========================================================
+    // COPY
+    // ========================================================
+
+    /*
+     * Example:
+     *
+     * copy(
+     *   "/home/kishan/documents",
+     *   "/home/kishan/backup"
+     * )
+     *
+     * documents/
+     *      resume.txt
+     *      notes.txt
+     *
+     * becomes:
+     *
+     * backup/
+     *      documents/
+     *          resume.txt
+     *          notes.txt
+     */
+    public void copy(
+            String sourcePath,
+            String destinationPath) {
+
+        FileSystemItem source =
+                getItem(sourcePath);
+
+        Directory destination =
+                findDirectory(destinationPath);
+
+        source.copy(destination);
+    }
+
+
+    // ========================================================
+    // MOVE
+    // ========================================================
+
+    /*
+     * Move does NOT create a copy.
+     *
+     * It removes the SAME object from its old parent
+     * and adds it to the destination directory.
+     */
+    public void move(
+            String sourceParentPath,
+            String itemName,
+            String destinationPath) {
+
+        Directory sourceParent =
+                findDirectory(sourceParentPath);
+
+        Directory destination =
+                findDirectory(destinationPath);
+
+        FileSystemItem item =
+                sourceParent.getChild(itemName);
+
+        if (item == null) {
+
+            throw new IllegalArgumentException(
+                    "Item not found: " + itemName
+            );
+        }
+
+        // Remove same object from old parent
+        sourceParent.remove(itemName);
+
+        // Add same object to new parent
+        destination.add(item);
     }
 
 
@@ -600,7 +634,7 @@ public class Main {
 
 
         // ----------------------------------------------------
-        // Create Directories
+        // CREATE DIRECTORY STRUCTURE
         // ----------------------------------------------------
 
         fileManager.createDirectory(
@@ -623,9 +657,14 @@ public class Main {
                 "photos"
         );
 
+        fileManager.createDirectory(
+                "/home/kishan",
+                "backup"
+        );
+
 
         // ----------------------------------------------------
-        // Create Files
+        // CREATE FILES
         // ----------------------------------------------------
 
         fileManager.createFile(
@@ -642,51 +681,100 @@ public class Main {
 
         fileManager.createFile(
                 "/home/kishan/photos",
-                "info.txt",
-                "Photo Information"
+                "photo-info.txt",
+                "My Photos"
         );
 
 
         // ----------------------------------------------------
-        // Display File System
+        // INITIAL STRUCTURE
         // ----------------------------------------------------
 
-        System.out.println("=== FILE SYSTEM ===");
+        System.out.println(
+                "===== INITIAL FILE SYSTEM ====="
+        );
 
         fileManager.display();
 
 
         // ----------------------------------------------------
-        // Composite getSize()
+        // GET SIZE
         // ----------------------------------------------------
 
         System.out.println(
-                "\nresume.txt size = " +
-                fileManager.getSize(
-                        "/home/kishan/documents/resume.txt"
-                )
+                "\nDocuments size = " +
+                        fileManager.getSize(
+                                "/home/kishan/documents"
+                        )
+        );
+
+
+        // ----------------------------------------------------
+        // COPY COMPLETE DIRECTORY
+        // ----------------------------------------------------
+
+        fileManager.copy(
+                "/home/kishan/documents",
+                "/home/kishan/backup"
         );
 
 
         System.out.println(
-                "documents size = " +
-                fileManager.getSize(
-                        "/home/kishan/documents"
-                )
+                "\n===== AFTER COPYING DOCUMENTS ====="
+        );
+
+        fileManager.display();
+
+
+        // ----------------------------------------------------
+        // MOVE FILE
+        // ----------------------------------------------------
+
+        fileManager.move(
+                "/home/kishan/photos",
+                "photo-info.txt",
+                "/home/kishan/documents"
         );
 
 
         System.out.println(
-                "kishan directory size = " +
-                fileManager.getSize(
-                        "/home/kishan"
-                )
+                "\n===== AFTER MOVING FILE ====="
+        );
+
+        fileManager.display();
+
+
+        // ----------------------------------------------------
+        // UPDATE + READ
+        // ----------------------------------------------------
+
+        fileManager.updateFile(
+                "/home/kishan/documents",
+                "notes.txt",
+                "Updated LLD Notes"
+        );
+
+        System.out.println(
+                "\nNotes Content = " +
+                        fileManager.readFile(
+                                "/home/kishan/documents",
+                                "notes.txt"
+                        )
         );
 
 
+        // ----------------------------------------------------
+        // SEARCH
+        // ----------------------------------------------------
+
+        List<File> foundFiles =
+                fileManager.findFile(
+                        "resume.txt"
+                );
+
         System.out.println(
-                "entire file system size = " +
-                fileManager.getSize("/")
+                "\nresume.txt occurrences = "
+                        + foundFiles.size()
         );
     }
 }
