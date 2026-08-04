@@ -18,9 +18,9 @@ public class Main {
         // -----------------------------
         // Users
         // -----------------------------
-        User shub = new User("1", "Shub");
-        User bob = new User("2", "Bob");
-        User tom = new User("3", "Tom");
+        User kishan = new User("1", "Kishan");
+        User alice = new User("2", "Alice");
+        User bob = new User("3", "Bob");
 
         // -----------------------------
         // Repository
@@ -48,58 +48,104 @@ public class Main {
                         expenseService,
                         simplificationService);
 
-        // -----------------------------
-        // Create Group
-        // -----------------------------
-        String groupId =
+        // =========================================================
+        // GROUP EXPENSE
+        // =========================================================
+
+        String goaTripGroupId =
                 groupService.createGroup(
                         "Goa Trip",
-                        List.of(shub, bob, tom));
+                        List.of(kishan, alice, bob));
 
-        // -----------------------------
-        // Expense 1
-        // Lunch Day 1
-        // -----------------------------
+        // Kishan paid ₹900
         groupService.addExpense(
-                groupId,
-                "Lunch Day 1",
-                100,
-                shub,
-                List.of(shub, bob),
+                goaTripGroupId,
+                "Dinner",
+                900,
+                kishan,
+                List.of(kishan, alice, bob),
                 SplitType.EQUAL,
                 new HashMap<>());
 
-        // -----------------------------
-        // Expense 2
-        // Lunch Day 2
-        // -----------------------------
+        // Bob paid ₹600
         groupService.addExpense(
-                groupId,
-                "Lunch Day 2",
-                100,
+                goaTripGroupId,
+                "Taxi",
+                600,
                 bob,
-                List.of(bob, tom),
+                List.of(kishan, alice, bob),
                 SplitType.EQUAL,
                 new HashMap<>());
 
-        // -----------------------------
-        // Before Simplification
-        // -----------------------------
-        System.out.println("\n===== BEFORE SIMPLIFICATION =====\n");
+        // =========================================================
+        // NON-GROUP : Kishan & Alice
+        // =========================================================
 
-        printBalanceSheet(repository.findById(groupId));
+        String kishanAliceGroupId =
+                groupService.createGroup(
+                        "Non-Group : Kishan & Alice",
+                        List.of(kishan, alice));
 
-        // -----------------------------
-        // Simplify
-        // -----------------------------
-        groupService.simplifyDebt(groupId);
+        groupService.addExpense(
+                kishanAliceGroupId,
+                "Dinner",
+                600,
+                kishan,
+                List.of(kishan, alice),
+                SplitType.EQUAL,
+                new HashMap<>());
 
-        // -----------------------------
-        // After Simplification
-        // -----------------------------
-        System.out.println("\n===== AFTER SIMPLIFICATION =====\n");
+        // =========================================================
+        // NON-GROUP : Kishan & Bob
+        // =========================================================
 
-        printBalanceSheet(repository.findById(groupId));
+        String kishanBobGroupId =
+                groupService.createGroup(
+                        "Non-Group : Kishan & Bob",
+                        List.of(kishan, bob));
+
+        groupService.addExpense(
+                kishanBobGroupId,
+                "Movie",
+                400,
+                bob,
+                List.of(kishan, bob),
+                SplitType.EQUAL,
+                new HashMap<>());
+
+        // =========================================================
+        // BEFORE SIMPLIFICATION
+        // =========================================================
+
+        System.out.println("\n==============================");
+        System.out.println("GOA TRIP");
+        System.out.println("==============================");
+        printBalanceSheet(repository.findById(goaTripGroupId));
+
+        System.out.println("\n==============================");
+        System.out.println("NON GROUP : KISHAN & ALICE");
+        System.out.println("==============================");
+        printBalanceSheet(repository.findById(kishanAliceGroupId));
+
+        System.out.println("\n==============================");
+        System.out.println("NON GROUP : KISHAN & BOB");
+        System.out.println("==============================");
+        printBalanceSheet(repository.findById(kishanBobGroupId));
+
+        // =========================================================
+        // SIMPLIFY GOA TRIP ONLY
+        // =========================================================
+
+        groupService.simplifyDebt(goaTripGroupId);
+
+        // =========================================================
+        // AFTER SIMPLIFICATION
+        // =========================================================
+
+        System.out.println("\n==============================");
+        System.out.println("GOA TRIP AFTER SIMPLIFICATION");
+        System.out.println("==============================");
+        printBalanceSheet(repository.findById(goaTripGroupId));
     }
 
     private static void printBalanceSheet(Group group) {
@@ -107,16 +153,15 @@ public class Main {
         for (User user : group.getMembers()) {
 
             System.out.println("--------------------------------");
-
             System.out.println(user.getName());
 
-            System.out.println("Paid : "
+            System.out.println("Paid    : "
                     + group.getBalanceSheet(user).getTotalPaid());
 
             System.out.println("Expense : "
                     + group.getBalanceSheet(user).getTotalExpense());
 
-            System.out.println("Balances :");
+            System.out.println("Balances:");
 
             for (Map.Entry<User, Double> entry :
                     group.getBalanceSheet(user)
@@ -132,7 +177,7 @@ public class Main {
                             other.getName()
                                     + " owes "
                                     + user.getName()
-                                    + " "
+                                    + " :Rs."
                                     + amount);
 
                 } else {
@@ -141,7 +186,7 @@ public class Main {
                             user.getName()
                                     + " owes "
                                     + other.getName()
-                                    + " "
+                                    + " : Rs."
                                     + (-amount));
                 }
             }
