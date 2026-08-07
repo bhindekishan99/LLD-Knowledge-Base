@@ -1,0 +1,20 @@
+1. Card
+    cardNumber
+    holderName
+2. Inventory
+    Map<CashType, quantity>
+3. ATM Machine
+4. State
+    idle, hasCardState, SelectOptionState,
+    TransactionState
+5. CashType
+
+all opertaions:
+    insertCard
+    enterPin
+    chooseOption
+        1. showBalance
+        2. withDrawMoney
+        3. cancle
+
+
