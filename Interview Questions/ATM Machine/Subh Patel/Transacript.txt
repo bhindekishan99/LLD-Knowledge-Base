@@ -1,0 +1,573 @@
+0:00
+Hi everyone, in this video we will be designing a very popular Amazon interview question which is ATM machine.
+0:06
+So let's get started. So this is how the ATM machine looks like. So whenever you
+Understanding the System
+0:12
+go to any ATM machine, you would be able to perform several operations. The operations would be inserting the card
+0:19
+into the ATM. Right? So here you can see that there is a place to insert the
+0:25
+card. Once you insert the card, you have to enter the PIN. And once you enter the
+0:30
+pin and let's say it is correct then you would be having several options on the screen. The options would be deposit
+0:37
+some money, withdraw some money or check the balance. You need to select that
+0:42
+option by clicking on the buttons which you can see over here. All right. So you'll be clicking one of the button and
+0:49
+it will select a particular option. Let's say you selected a withdraw money
+0:55
+option. So in that case the next prompt would be to write the amount which you
+1:00
+want to withdraw. So let's say I want to withdraw 5,000 rupees. So once I enter the 5,000 rupees, this ATM will check
+1:08
+whether it has 5,000 rupees or not and it will also check whether the user's
+1:15
+account also has the 5,000 rupees or not. Once everything is done, it will
+1:20
+give us the 5,000 rupees through this place. So I hope now you understood the entire ATM machine which we would be
+1:28
+building. Now let's try together the requirements based on whatever we have understood. So just now we saw that our
+Requirement Gathering
+1:35
+ATM machine has lots of operations. Isn't it? And obviously in the interview
+1:40
+we won't be able to cover all the operations. So we need to ask the interviewer that what all core
+1:46
+operations we need to implement in our ATM machine. All right. So let's say the
+1:52
+interviewer ask us to implement this cash withdrawal operation. Okay. So once
+1:57
+he ask us to implement this particular operation, the second question that should come into our mind is this
+2:03
+particular question. So over here we are asking that should our ATM have only one
+2:09
+variable representing the amount in the ATM or should the ATM have different
+2:15
+types of nodes like 2,000 rupees node, 500 rupees node or 100 rupees node.
+2:21
+Right? So let's say the interviewer asks us to have this different types of nodes
+2:26
+and he also wants us to make this particular component extensible. By extensible I mean that in future we
+2:34
+should be able to add let's say 10 rupees node, 50 rupees node, 200 rupees
+2:40
+node etc. Okay. And let's say interviewer himself says that we have to
+2:46
+design the system which should support any number of ATM machines. All right.
+2:52
+So we have to keep this three things in mind while designing our ATM system.
+2:58
+Okay. So now let's check out each and every entity present in our ATM system before understanding the entire flow. So
+UML Diagram
+3:05
+here's the class diagram of the ATM system. Before checking out all the entities in the class diagram, let's
+3:11
+first try to understand the ATM database or you can say ATM table.
+3:18
+All right. So let's say there's one bank and that bank has thousands of ATM machines all over the town. So obviously
+3:26
+we need to store all the details of that ATM machine somewhere. Hence we would be creating this ATM table wherein each row
+3:34
+represents the details of a specific ATM machine. For example, ATM machine one
+3:41
+would have the ID as ATM 1 and it would have this cache. All right. And further
+3:47
+we have segregated that cash into different types of nodes like there would be five 2,000 rupees note. 5 500
+3:55
+rupees note and 2100 rupees note. All right. Now the thing is let's say you go
+4:01
+to the ATM machine 2 and withdraw the money. So basically what will happen is
+4:07
+that ATM machine 2 will be updating this particular row. It will deduct the cash
+4:15
+available and all the nodes which are dispensed. All right. And it will also
+4:21
+change the status. Now what is the status? We'll try to understand in a moment. But right now I assume that you
+4:28
+understood two things. First is each and every ATM machine would have their
+4:34
+details in this ATM table and they would be updating those details whenever
+4:39
+someone withdraws the money or whenever the state of that ATM m updates. All
+4:45
+right. Now coming back to the class diagram. Let's see each and every entity one by
+4:51
+one. So the first thing is the ATM repository. So as you know
+4:58
+repository layer is a layer which stores all the CRUD operations like saving the
+5:03
+ATM details, getting the ATM details by the ID, updating the status of the ATM
+5:08
+machine by the ID and so on and so forth. So all those functions would be kept into this repository layer and this
+5:16
+CRUD functions would be operated on the ATM table or ATM database and as you
+5:22
+know we won't be able to use real database in the LLD interview or the machine coding ground right so instead
+5:29
+of using real database I have used this inmemory hashmap wherein the key would
+5:35
+be the ID of the ATM machine and value would be the entire row. All right. So
+5:42
+this ATM object represents the entire row. So each and every row would be
+5:48
+having the ID of that machine, the status of that machine, the cache
+5:53
+available and the count of different types of nodes. And instead of using a string data type for the status
+5:59
+variable, I have used the enum just for type safety. Okay. Now what are these
+6:07
+different types of status like idle, card inserted, authenticated, dispense
+6:12
+cash etc. And what is the reason behind using this status?
+6:17
+So in order to understand this thing we need to first understand the ATM machine
+6:23
+class. So let's first try to understand that. So here we have that ATM machine class
+6:30
+and one thing that you can observe is there is one variable called as state. Now why am I using this state over here?
+6:38
+Now in order to understand why we are using the state variable, let's come back to this diagram. So let's assume
+State Design Pattern
+6:45
+that you go to this ATM machine and directly press this withdraw button. So
+6:51
+what do you think? Will this withdraw button work or not? Obviously not, right? Because you haven't yet inserted
+6:58
+the card. Before even inserting the card, how can you withdraw the money? Right? So that's the thing you have to
+7:05
+first insert the card. So let's say now you inserted the card and again you
+7:11
+press the withdraw button. Now tell me whether it will work or not. Obviously it will not work. Why? Because you
+7:18
+haven't entered the PIN yet. So let's say now you enter the PIN as well. Now
+7:25
+again you press this withdraw button. Will it work? No. Why? Because assume
+7:32
+that the entered pin is the invalid pin. So if it is the invalid pin, how come
+7:39
+the ATM allow you to withdraw the money? Right? So now let's assume that you have
+7:44
+inserted the card, enter the pin and the pin you entered is a valid PIN. Now if
+7:50
+you press this withdraw button, it will allow you to withdraw the money. Isn't
+7:56
+it? So this is how your ATM machine class would look like. It will have
+8:01
+various functions like withdraw cash, insert card, eject card, enter pin etc.
+8:07
+And each of these function will need to first check the state of that ATM machine and respond accordingly. So if
+8:15
+you haven't yet inserted your card and you try to press the withdraw button
+8:20
+then it will show this message that is please insert your card. Now let's say you inserted your card then it will show
+8:27
+this message that is please enter the pin. Okay. So each and every function over here would be behaving differently
+8:35
+based on the state of that ATM machine. Isn't it? So this is how we can write the code for this ATM machine. But the
+8:42
+problem over here is that this ATM machine class is violating the solid principle. First is it is violating the
+8:49
+single responsibility principle because this class alone handles all the logic for this different functions. Right?
+8:57
+Second is it is violating the open close principle because if you want to add
+9:03
+some different state or if you want to update the message then you need to come
+9:08
+to this ATM machine class and update this code isn't it? So all in all you
+9:14
+are violating the solid principles. So in order to overcome that what we can do
+9:20
+is we can use state design pattern. The state design pattern would be very helpful over here. Why? Because in the
+9:27
+state design pattern each and every function would be behaving differently based on the state in which the machine
+9:35
+is. So let's say that you try to withdraw the cash and the machine is in
+9:41
+idle state. So in that case it would display this message.
+9:48
+Okay. And if the machine is in card inserted state then it would display
+9:54
+this message indicating the user to enter the PIN.
+9:59
+Okay. So in the state design pattern we won't be writing this if statement. Instead we
+10:06
+would be having a separate class for each and every state. So here are the different state classes and each of the
+10:13
+state class implements all the functions like insert card, enter pin, select
+10:20
+option etc. All right and the cool part over here is the insert card function in
+10:26
+the idle state would have the different logic compared to the insert card function in the card inserted state and
+10:33
+so on and so forth. So basically each of the state classes will have their own implementation of those functions. And
+10:40
+you might have noticed that I have highlighted some functions. For example, in the idle state, I have
+10:47
+highlighted insert card function and get status. Why? Because in this particular
+10:53
+state, those two functions are the important functions because the other functions will either have no logic or
+10:59
+it can throw some exception. Similarly, in the card inserted state, the user can just enter the PIN and
+11:07
+eject the card. In the authenticated state, the user can select the option
+11:12
+like whether user wants to withdraw the money or deposit the money or check the
+11:18
+balance. So, he will select one of the option. Now, currently we just have one option that is withdraw option. And
+11:24
+finally when the user selects the withdraw option the state of the ATM machine will go into this dispense cash
+11:31
+state wherein user will be entering the amount which he wants to withdraw. So
+11:37
+dispense cash is one of the operation which he can perform and he can also perform the eject card. So I hope now
+11:44
+you understood why we are using the state design pattern and how this design pattern is used in our ATM system.
+11:52
+Now coming to the ATM machine class, this ATM machine would have a state.
+11:59
+Okay. So it will be either in idle state, card inserted state, authenticated state or dispatch cache
+12:06
+state. So on the basis of the state variable, this operations would behave
+12:12
+differently. All right, we'll directly see this in code. Now apart from that this ATM
+12:19
+machine has this ATM repository object as well. The reason behind this is ATM
+12:26
+machine would be interacting with the database isn't it? So it needs to update
+12:31
+a specific row. So for doing that it needs the ATM repository object
+12:38
+and ATM machine has this ATM object because this represents the row on which this ATM machine would be working. Okay.
+12:46
+So it will update this particular ADM object and it will put that into the database after updating that.
+12:54
+Apart from that it also has this current card. So whenever any user inserts the
+12:59
+card that card will be stored into this variable. So ATM machine has one has a
+13:07
+relationship with the card. Card will have the card number the PIN and the
+13:12
+account with which that card is associated. So account will just have the account
+13:19
+number and the balance which the user has. All right.
+13:24
+So I hope now you understood the ATM machine class as well. Now
+COR Design Pattern
+13:30
+coming to this dispense cache state. So over here whenever the user tries to
+13:36
+dispense the cash behind the scene we would be using this chain of
+13:42
+responsibility design pattern. Now why are we using chain of responsibility design pattern? We'll talk that in a
+13:48
+moment. But before that let's try to understand this classes. So
+13:54
+you might be knowing that in the chain of responsibility design pattern we should have this set next function.
+14:00
+Okay. Why? Because we need to build the chain. Isn't it? So with the help of
+14:06
+this function we would be building the chain wherein the first node would be
+14:12
+this 2,000 dispenser. The second node would be 500 dispenser and the third node would be 100 dispenser and so on
+14:21
+and so forth. And in future if I want to add some other types of node like let's say 10 rupees node then I can just
+14:28
+create one class over here and make it implement this interface.
+14:34
+Okay. Now the second function is scan dispense function. Now reason behind
+14:39
+using this function is let's say user wants to withdraw 510 rupees. Okay. And
+14:46
+the ATM has 6,000 rupees which is obviously greater than 510. Right? So
+14:54
+this function will first check whether ATM has money which is greater than the
+14:59
+requested money. It will also check whether the user has more money than the
+15:04
+requested money in their account. And the third thing it will check is whether
+15:10
+this request can be fulfilled by the nodes which are present in the ATM
+15:16
+machine. So for example, this particular request cannot be fulfilled in this case. Why? Because although the ATM has
+15:23
+more money than the requested money, but ATM does not have 10 rupees node, isn't
+15:29
+it? It just has 500 rupees node or 100 rupees node. So it can at max give 500
+15:36
+rupees right? It cannot give 510. So the entire request would be rejected. So we
+15:42
+have to first check whether the request can be fulfilled or not. If we can fulfill that request then only we will
+15:50
+dispense that because we would be updating that table. Isn't it? So this
+15:56
+was about the chain of responsibility design pattern. And now coming to why do we use this design pattern over here. So
+16:04
+the reason is quite simple. So assume that we don't use this design pattern.
+16:09
+So in that case what we would do is we would write that logic in this dispense
+16:15
+cache function itself. That is we would loop through all the types of nodes. Right?
+16:24
+For example, we would first go to 2,000, then 500, then 100 and dispense it.
+16:32
+Okay. But let's say I want to add some other nodes. For example, 10, 50, etc.
+16:38
+Then I need to come into this class and update this particular function, isn't
+16:43
+it? Which is clearly the violation of the solid principle. So that's the reason why I decided to use chain of
+16:50
+responsibility design pattern over here. Okay. So I hope now you understood the entire class diagram of this ATM system.
+16:58
+So now let's check out the output. This is the main class. Over here I have first created the card object. The card
+Code Output
+17:05
+would have the card number, the PIN and the account. And in this account we have 5,000 rupees.
+17:12
+Then I have created two rows in the ATM table. The first row will have this ID
+17:19
+and it will have five 2,000 rupees note. five 500 rupees node and 2100 rupees
+17:26
+node. Similarly, ATM2 would have this many nodes. Okay. Then I've created an
+17:33
+instance of ATM machine 2 and this machine 2 will have this ID.
+17:38
+It will be basically interacting with this particular row. Okay.
+17:45
+And then what I'm doing is I'm going to that ATM machine 2 and performing some operation like inserting the card,
+17:53
+entering the pin, selecting the option and then dispensing the cash. So over
+17:59
+here I'm trying to dispense 1,000 rupees. Point to note over here is the
+18:04
+balance in my bank account is 5,000 rupees and the amount of money present
+18:11
+in ATM2 is 2 500 rupees note that is 1,000 and 5100
+18:19
+rupees note which is 500. So total 1,500 rupees are present in ATM2.
+18:27
+So it should basically dispense 1,000 rupees right? So let's run the code.
+18:32
+So first the card was inserted then the user entered the pin and that pin was
+18:37
+validated by the ATM and then we selected the withdrawal option and
+18:43
+finally the ATM dispensed to 500 rupees note. Why? Because we selected 1,000
+18:48
+rupees. Okay. So now let's try to change this amount.
+18:54
+So instead of 1,000 let's try to select 1,300.
+19:00
+Now let's rerun the code. So now it is giving two 500 rupees node and 300
+19:07
+rupees nodes which is good. Now what we'll do is we'll try to
+19:14
+update this 1 1300 to let's say 1,500 or let's say 1,600.
+19:19
+Now let's rerun the code. Now it is saying that ATM has insufficient cash.
+19:25
+It cannot dispense 1600. Why? because ATM just had 1,500, isn't it? So again,
+19:32
+this is also correct message. Now instead of 1,600, let's select 1,400 and
+19:39
+10. Now if I run the code, the message which we will get is it cannot dispense
+19:47
+requested amount with available denomination. Obviously the ATM machine has 1,500 but it cannot give 1,410
+19:55
+because it does not have 10 rupees. note. So again this message was a valid message. So I hope now you understood
+20:02
+the output. So now let's check out the code. So these are the different packages which I have created like uh
+Code Explanation
+20:09
+chain of responsibility, enums, factory, model, repository, service and state. So
+20:15
+let's see all of these classes one by one. Let's start with the chain of responsibility.
+20:21
+So over here I have created this cache dispenser interface which will have these three functions which we already
+20:27
+saw in the class diagram. Now there would be three types of
+20:32
+dispenser 2,00 500 and 100. So coming to the 2,00
+20:39
+dispenser this dispenser would be implementing all this function. The first function is
+20:46
+very easy. We are just treating this function as the setter. So I'm just going to update this particular
+20:53
+variable. So this variable is basically used to go from one node to another node
+20:59
+in the chain. Okay. So we need to build the link list, right? So that will be done with the help of this variable
+21:07
+and we have the scan dispense function. So over here what we are doing is we are
+21:12
+first getting the count of nodes in this ATM. Okay. So we'll get the count of
+21:19
+2,000 rupees node in this particular row or in this particular ATM object and
+21:25
+then I'm using some math to get the total number of 2,000 rupees nodes which we can deduct and then I'm finally
+21:31
+deducting that from the requested amount. So if the requested amount becomes zero will stop going forward in
+21:38
+the chain else we'll keep on going to the next node. Okay. So
+21:44
+I'm asking the next node whether that node can dispense this much amount or
+21:50
+not. All right. If it can then we'll stop else that node will again send the
+21:57
+request to the node after that. Right? So this logic is same for all of this
+22:02
+handlers. Only thing is here we will be getting the 500 count and here we would
+22:09
+be getting the 100 count. rest all these things remain same
+22:16
+and in the displace function as well we would be using the same logic only change is that we would be updating this
+22:23
+ATM row or ATM object right because we are actually dispensing that note.
+22:32
+So, so I hope now you understood all this dispensers
+22:38
+and we are also building the chain with the help of this cache dispenser chain builder. Here I'm creating various nodes
+22:45
+like D1, D2, D3, D1 is nothing but 2,000 dispenser, D2 is 500 and D3 is 100 and I
+22:53
+am connecting them that is D1 will be the head, D2 will be the second node and
+22:59
+D3 will be the third node. Okay. So whenever someone calls this function, we would be giving them the head of the
+23:05
+chain. Now coming to this ATM status enum here we would be having this four
+23:11
+status and we already understood that why we are using this status. The reason
+23:17
+is we are using the state design pattern in our system and I want to know the
+23:23
+state of the ATM machine from the database and in the database we would be storing this status. Right? So that's
+23:31
+the reason why we are using that ATM status. Now coming to the model.
+23:36
+So first is account. Each and every account would be having the account number and the balance.
+23:42
+And card would be having the card number, the pin and the account with which it is associated.
+23:49
+And the ATM would have this attributes which we already saw in the class
+23:55
+diagram. Okay. Now apart from that we also have
+24:01
+this repository and this repository will have this CRUD operations which will be performed on
+24:07
+that in-memory database. All right.
+24:15
+Then the main class is the service class. So over here this ATM machine would be
+24:22
+using this ATM repository in order to fetch this particular object. So in the
+24:27
+constructor I am fetching that ATM object based on the ID. Okay. And I'm
+24:34
+saving that into this variable. So that if any update is there I'll directly update this object and save this object
+24:41
+into the database again. And then each and every machine would be having the state isn't it? Because we
+24:49
+are using the state design pattern. And this machine would also have the card. So if someone inserts the card this
+24:56
+would be having some value else it would be null
+25:02
+and this ATM machine will have this operations and the good thing over here is we are not using the if statement in
+25:08
+this functions instead we are telling the specific state to run this function
+25:14
+there is this ATM state interface which has all the functions all right and this
+25:20
+particular ATM state will be implemented by four different states. So let's see
+25:26
+all of them one by one. So the first one is the idle state. So over here one main
+25:32
+function is this insert card. Here we would be inserting the card.
+25:39
+That is we would be using this setter to update this variable.
+25:44
+And once we update that variable we would be going into the next state. That
+25:51
+next state is called card inserted state. Okay. So let's go to the next
+25:57
+state. So now if someone calls this function, it will not do anything. Instead it will
+26:04
+just print that card is already inserted. So here you can clearly see
+26:09
+that in this particular function the logic was different and the logic over
+26:16
+here is different. Why? cause because earlier we were in idle state and now we
+26:21
+are in card inserted state. So that's the reason why the behavior of the same
+26:26
+function varies based on the state. Then in the card inserted state we would
+26:33
+be entering the pin right so this is that thing. So here I am checking
+26:38
+whether the pin is valid or not. If it is valid, I'm printing this message and
+26:44
+I am moving this ATM machine into the authenticated state. All right. And by
+26:50
+the way, this states would be operated on a specific machine. So that's the
+26:56
+reason why we have this ATM machine attribute in all of the state. Okay.
+27:03
+Then once we go into the authenticated state, the operation which we can perform is this select option. So over
+27:09
+here we would be having different options but right now we just have only withdrawal option right. So over here
+27:17
+when the user selects the withdrawal option we would be going into the next state which is the dispense cash state.
+27:23
+And in this dispense cache state this is the function which we can call. In this
+27:28
+function we would be checking total three things. The first one is whether
+27:34
+the ATM balance is greater than the amount or not. If it is less than the
+27:40
+amount in that case, I'll be printing this message and eject the card. Now, what is this eject card? So, eject card
+27:48
+means I'm just uh removing the card from that machine automatically.
+27:53
+All right? And since the card is removed from that machine, the machine will directly go into the idle state. So I'm
+27:59
+updating the state of that machine. And instead of creating the object manually
+28:06
+like this, we can also use factory design pattern. Why? Because let's say
+28:12
+in future the idle state also takes one more parameter. Let's say XY Z. Then I
+28:19
+need to go at each and every location and update that second parameter wherever we are creating this object.
+28:25
+Right? So instead of doing that we can just centralize the object creation process via the factory design pattern.
+28:33
+Okay. So I hope now you understood why we should be using factory design pattern.
+28:40
+So coming back to this dispense cash function if the ATM balance is less than
+28:46
+the amount in that case we would be ejecting the card. Okay. And we also have second check which is whether the
+28:54
+balance of the account is less than the amount or greater than the amount. If it is less than amount then also we'll be
+29:00
+printing this message and eject the card. And the third check is
+29:08
+whether we can dispense the nodes from the ATM or not. If we cannot dispense
+29:13
+the node then we will be printing this message and eject the card. All right. And if we can dispense the nodes, we
+29:21
+would actually dispense them and update them over here. All right. Here
+29:27
+I'm updating the available count. Earlier I just updated the
+29:36
+count of the 500 rupees nodes or 2,000 rupees node or 100 rupees node. But over
+29:41
+here I am updating the total cash available in the ATM machine. All right.
+29:48
+And after that I'm also updating the users account balance. Right? So this
+29:54
+these are the two things we are updating and we are moving this ATM machine into
+29:59
+the idle state. Okay. So instead of doing that we can just uh eject the card
+30:05
+here itself. So card would be ejected and the ATM will be moved into the idle
+30:11
+state. So these were all the classes present in this ATM system. So I hope now you
+30:18
+understood this system. If you did then please like the video and subscribe to the channel. Thanks for watching.
