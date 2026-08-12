@@ -1,0 +1,12 @@
+Important points reflected in this code:
+
+Seat has no SeatStatus.
+Lock is based on showId + seatId.
+tryLock() is non-blocking.
+If one seat fails to lock, all previously acquired locks are released.
+Payment uses Strategy + Factory.
+BookingService owns the booking flow.
+Lock ownership is checked before payment.
+Payment failure releases locks.
+tryLock() is atomic for a particular seat key using ConcurrentHashMap.compute().
+Kept it as a single Java file, suitable for LLD interview practice.

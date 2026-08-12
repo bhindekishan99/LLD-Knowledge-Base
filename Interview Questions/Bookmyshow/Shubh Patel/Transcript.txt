@@ -1,0 +1,860 @@
+0:00
+Hi everyone, in this video we will be designing the movie booking application which is asked in top product based
+0:06
+companies. But if you want to design the flight booking system or hotel booking system then also this video would be
+0:11
+very helpful for you. So let's get started. So let's understand the system.
+Understand the system
+0:16
+Before checking out this diagram, let's first check the book my show website itself.
+0:22
+So currently I am onto the book my show website where I would be showcasing you how to book a ticket. So firstly you
+0:31
+will select the movies and here you would be having the list of movies available in your city right. So let's
+0:38
+say I want to watch this Jurassic Park. So I'll be clicking on this movie
+0:46
+and I'll be clicking on this book tickets. So once we click on this movie we will
+0:52
+be having the list of shows for that movie. So over here we have the theaters
+0:59
+where this movie would be screened and in that theat these are the shows right
+1:04
+so one show is at 12:20 p.m. another is at 5:50 p.m. and so on and so forth okay
+1:10
+so the point that I want to highlight over here is our application should be
+1:15
+able to display all the shows for the movie which user has selected. So this
+1:21
+is the first thing which this book my show application supports. Right now coming back to the diagram.
+1:28
+Once I am sure for a specific show, I would click on that show and
+1:35
+there I would be prompted to select some seats which I want. Now the light gray
+1:40
+colored seats which you are able to see over here are the regular seeds and this
+1:46
+dark gray color seeds are the premium seeds. Okay. And the red colored boxes
+1:52
+which you are able to see over here are the booked seats. So someone has already
+1:58
+booked this five seats. Right? And this is the green colored box which means
+2:03
+that I have currently selected this seat. Okay? So once I select some seats
+2:08
+I would be clicking on this proceed button so that I can pay for that seat. Right? So once I click on this proceed
+2:15
+button this particular seat which I have selected would be locked. So no other user can select that seat. If that user
+2:24
+tries to select that seat then one error message would be displayed indicating that that particular seat is temporarily
+2:33
+unavailable. Okay. And after clicking on this proceed
+2:39
+button you would be on the payment page like this. You would be selecting some payment option like G pay card, PayPal
+2:47
+etc. And you have to pay for those seats which you have selected. But the point that I want to highlight is you have to
+2:54
+pay within the TTL. So the TTL for book my show is 8 minutes.
+3:00
+After 8 minutes the lock which is on this seat would be automatically
+3:06
+released so that other users can lock that seat. Okay.
+3:12
+Right. So within 8 minutes if I pay for the seat well and good. If I am
+3:18
+not able to pay within 8 minutes I have to go back over here and reselect that
+3:24
+seat. Okay. So after 8 minute even if I click on the pay button it would be
+3:30
+showing one error message that the seats are not locked or the lock is not owned
+3:36
+by you. So it will automatically throw you on this particular page where you have to select the seeds.
+3:43
+So I hope you have understood the entire book my show system. Now let's try to gather the requirements. These are the
+Requirement Gathering
+3:50
+requirements. I have categorized the requirements into three parts. The first one is extensible. Second one is dynamic
+3:57
+and the third one is high traffic or the concurrency. So let's uh check out the extensible category first. So in this
+4:05
+category these are the questions which you can ask the interviewer. The first question is what are the types of seat
+4:13
+available in our system. So let's say the interviewer says currently there are
+4:19
+two types of seats. First is regular and second is recliner. But our system
+4:24
+should be able to support different types of seats in future as well that is
+4:30
+premium VIP etc. So this indicates that the seat should be extensible.
+4:38
+In future I should be able to add more and more seats without modifying the old code. Okay. The second point you can ask
+4:46
+the interviewer is what payment methods are currently supported in our system. Again the interviewer says that
+4:53
+currently UPI and the card payments are supported but in future we should be
+4:58
+able to add more payment methods. So again this is telling us to make our
+5:04
+system extensible for the payment component. All right. Now coming to the
+5:10
+dynamic category. By dynamic category I mean that the end user or the admin
+5:17
+should be able to perform certain operations. By operations I mean we
+5:22
+should be able to add theaters, screen, seat, movie and shows into our system.
+5:28
+And there is one more operation that the end user can perform is they should be
+5:34
+able to get all the shows by the movie name. Okay. So these are the six
+5:42
+different requirements in the dynamic category. Again by dynamic I mean that
+5:47
+the end users or the admin should be able to perform some operations.
+5:53
+Okay. Now coming to the high traffic or the concurrency requirement. So over
+5:59
+here the first question that you can ask the interviewer is regarding the thread safety.
+6:05
+So let's say there is one seat and two different user who are trying to select
+6:10
+that seat. So obviously only one of them should be getting that seat right and the interviewer says that yes you have
+6:16
+to handle that. Okay. Now the second question that you can ask the interviewer is should the failed
+6:23
+payments or the expired locks free the seat for others to book immediately or not. So again the interviewer says that
+6:31
+yes after some time duration the locks on the seat should be automatically
+6:36
+removed so that other users can lock that seat. Right? Because as the owner
+6:42
+of the theater I want to maximize a profit. Right? So if user one has
+6:48
+selected the seed and he is not paying the bill then obviously I want to unlock
+6:54
+those seeds right after some time duration. So that's the key requirement
+7:00
+over here. After some time duration I'll be unlocking those seeds automatically
+7:07
+and that time duration in the book my show application is 7 to 8 minutes as
+7:12
+you can see over here. Okay. And this is the issue which one of
+7:18
+the book my show user was facing. So over here that user selected some seat
+7:25
+and went to the payment page but that user did not pay the bill for some time duration probably greater than 8
+7:32
+minutes. Okay. Then after the TTL he clicked on the pay button. So once he
+7:37
+clicked on the pay button he was getting one error message that it is already booked. Now the reply by the book my
+7:44
+show is probably someone else has booked those seat because you have already
+7:50
+exceeded the 8 minute timer right so I have also implemented this particular
+7:56
+scenario in my code we'll see the code in the code section but before that
+UML Diagram
+8:02
+let's see the class diagram to understand the entire flow this is the
+8:07
+class diagram for the book my show application over here we'll try to understand the entire flow for the
+8:14
+creation of the booking and the confirmation of the booking. But before that let's check out each and every
+8:20
+class so that we understand the entities present in this class diagram.
+8:26
+So let's start with the models which are present over here.
+8:35
+So let's start with the theater. So the theater would be having these three attributes that is ID, name and the
+8:43
+screens which are present in the theater. So instead of having list of screen I have used map. Why? Because I
+8:52
+want to fetch the screens more efficiently. Right? That's the reason why I have used map. And over here we
+9:00
+have screens. Right? That's the reason why we have has a relationship between the screen. So screen would be having
+9:08
+the ID and the seats. So again there is one has a relationship between screen and the seat.
+9:14
+Currently in our system we have two types of seat. First is regular seat. Second is recliner seat. And since we
+9:21
+want to make this seat component extensible. I have created one abstract
+9:27
+seat class where all the common attributes would be present and all the unique things of a specific seat would
+9:34
+be present into their respective classes either regular seat or the recliner seat
+9:39
+and in future if I want to add a premium or VIP seat I can just create one class
+9:45
+and extend that from the seat. Okay. So
+9:50
+this were the seats. Now for the movie class we would be
+9:56
+having the ID the title of the movie and the duration in minutes for that movie
+10:02
+right and there is one more class called as show. So each and every show would be
+10:08
+having the ID, the movie which would be played in that show, the start and end
+10:14
+time of that show and also the place where this show would be played that is
+10:19
+the theater and the screen in which the show would be played. Right? So this were the models.
+10:29
+Now let's check out the payment component which is this.
+10:36
+So for the payment component I have used strategy design pattern because I want to have different algorithms in this pay
+10:44
+function. So whatever the user will give the input I have to change the
+10:50
+algorithm. If the user selects UPI payment then this pay function would act
+10:55
+as the UPI payment method. Right? And if the user selects car payment then this
+11:01
+pay function would be acting like car payment method. So that's the reason why I have used the strategy design pattern
+11:08
+over here. And I have also used factory design pattern so that I can create this
+11:14
+concrete strategies based on the user input. Right?
+11:21
+And another reason for using the factory design pattern is we will have one centralized if else logic. If we don't
+11:28
+create this factory class, we have to write this if logic in the client class
+11:35
+and that would violate the solid principle. So that's the reason why we have created this factory class where we
+11:41
+would be having that centralized if else logic. Now we also have this lock provider
+11:48
+component. Over here we have four main functions which would be implemented by
+11:54
+in-memory lock provider or the radius lock provider and in future we can have different types of lock providers as
+12:00
+well. So let's try to understand these four functions first. So the first function is try lock. So
+12:07
+this function will be locking a specific key
+12:13
+for this much time duration. Okay. Now what is this key? I will be explaining
+12:19
+that in the code. So we would be basically locking this key for this much
+12:24
+time duration and if we are successful then we'll return true else we return
+12:30
+false indicating that we were unsuccessful in locking that particular
+12:36
+key. The unlock key function will basically unlock that particular key
+12:42
+and is lock expired will check whether the lock is expired on this key or not.
+12:48
+If it is expired then we will return true as we return false and is locked by
+12:54
+we'll check whether the lock which is present on this key is owned by this
+13:00
+user or not. We need this function for confirming the booking because when we
+13:05
+would be pressing on the pay button that time we have to check whether we are the
+13:11
+owner of that lock or not right in order to prevent the scenario which I showed
+13:17
+you few minutes back. Right? So this was the lock provider component and this is
+13:23
+the booking service class. The two main functions in this service is create
+13:29
+booking and confirm booking. So when the user selects some seat and clicks on the
+13:34
+proceed button at that time create booking function would be called and when the user clicks on the pay button
+13:41
+at that time confirm booking function would be called. Okay. And
+13:48
+we also have this booking repo. So if you are not aware about the repository layer then let me explain this in very
+13:56
+brief. So the repository is basically a class where you would be having the CRUD
+14:01
+operations. CRUD operations as in saving the booking, getting the booking,
+14:06
+deleting the booking or updating the booking. So all this CRUD operation would be performed on some database.
+14:12
+Right? So in the LLD you won't be having the actual database instead you would be
+14:18
+having the in-memory database like a hashmap. So over here I am using the
+14:24
+hashmap as my database and this booking repository will have the cred operations. So when I would be
+14:31
+creating the booking at that time I would be interacting with the booking repo in order to save that booking into
+14:38
+the booking database. Okay. And we also have this booking
+14:45
+class. So this booking class has several metadata like booking ID, the ID of the
+14:53
+show for which the booking was created, the ID of the user who has booked this
+14:58
+particular booking, the ID of the seats and the status of the booking. So status
+15:05
+can be of four types created. So when you would be clicking on the proceed
+15:10
+button at that time the status would be in created phase and when you are
+15:16
+successful in paying the bill at that time the status would be confirmed and if the payment fails at that time the
+15:22
+status would be failed and we would also have one cancelled status and we also
+15:28
+have this payment type. So user will select one payment right up payment or card payment. So accordingly we would be
+15:35
+having the payment type and this amount represents the total price of all the
+15:40
+seats which you have selected. Okay. So I hope now you understood each and every
+15:46
+classes. So now let's understand the entire flow. So this is the client who would be selecting some seats and after
+15:54
+that he would be pressing the proceed button. So when he presses the proceed
+16:00
+button at that time create booking function of this booking service would be called. Now this booking service will
+16:07
+interact with the lock provider in order to lock those seats. Okay. Once those
+16:13
+seats are locked, we would be creating the booking using this booking repository layer. Right? And we would be
+16:20
+saving that booking into the booking database. All right. So this was the flow for the creation of the booking.
+16:26
+Now regarding the confirmation of the booking again the client would click on
+16:31
+the pay button. At that time this confirm booking function would be called. This confirm booking function
+16:39
+will first validate whether the lock is expired or not. And if it is not expired, we have to also check whether
+16:45
+the lock belongs to the current user or not. And after that we would be paying the total amount using the payment type
+16:54
+which user has selected. Right? So this is the entire flow for the creation and the confirmation of the booking. Now
+17:00
+regarding the creation of this objects what the admin can do is admin can
+17:06
+utilize the service and the repository layer of those objects. So for example
+17:12
+movie would be having the movie service and the movie repository. Show would be
+17:17
+having the show service and the show repository. So all these services and the repositories can be used by the
+17:22
+admin. Okay. So I hope now the entire class diagram and the flow is well understood.
+17:30
+So now let's check out the output first before moving to the code. This is the main class. Over here I have created
+Code Output
+17:36
+some repository objects. Then I have also created the lock provider. So currently I'm using in-memory lock
+17:42
+provider. Further I have created services which would be used to perform some CR
+17:49
+operations like creating the theater and adding the screen in a specific theater
+17:56
+and also adding the seat in a specific screen. Okay. Some of the seats would be
+18:01
+regular seat which would charge 150 rupees and some other would be recliner
+18:07
+seat which would charge 300 rupees. Right? And then using the movie service,
+18:13
+I would be creating one movie named Interestr which has a time duration of 120
+18:19
+minutes. Further I would be creating the show using the show service and this show
+18:25
+would be played into the screen one of the theater one. And this is that movie.
+18:31
+Right. And the start time of this show is 6:30 p.m. All right. So now that we
+18:37
+are ready with all the objects, let's see four demos. The first demo is
+18:43
+whenever a user selects a specific movie by the movie name, that user should be
+18:48
+able to see all the shows for that movie. Okay, so this is demo one. In the
+18:55
+demo two, one user that is user one would first select some seats and click
+19:04
+on the proceed button that is he will call this create booking function. So
+19:09
+this function would be basically locking this seats. Okay. And finally this user
+19:16
+would be selecting the card payment method in order to pay for those seats.
+19:22
+Right. So this is the demo two. Now in the demo three we will be seeing
+19:28
+the concurrency part. So over here two different user will try to book
+19:34
+overlapping seats simultaneously. So what is happening is there are two users. First is user two and second is
+19:41
+user three. Both of them would select some seats. So this user two has
+19:47
+selected seat number three and four and user three has selected seat number four and five. So you can see that seat
+19:53
+number four is overlapping right. So I have handled that part as well. That is
+19:59
+only one of this user would be successful in creating the booking. The
+20:05
+other user will fail. Right? So in that case this message would be printed. Now
+20:11
+I am not concerned which user would be failed. Either user two can be failed or
+20:16
+user three can be failed. What I am concerned is only one of them should be successful in creating the booking that
+20:23
+is in locking the seats. Right
+20:29
+now coming to the demo 4 which says that the lock should be expired after the
+20:34
+TTL. So currently I have taken TTL as 5 seconds instead of 8 minutes so that I
+20:41
+can show you the output quickly. Okay. So over here first the user four will
+20:46
+come and select seat number six and seat number seven and that user will proceed
+20:53
+to the payment page. So basically this seats would be locked by this user.
+20:58
+Right? But that user will not pay for that seat for 6 seconds. All right? It
+21:06
+means that those seats would be again available for the booking for other users because TTL
+21:13
+has exceeded. Hence the lock has expired. All right.
+21:19
+So after 6 seconds user five would come and try to lock the same seats and that
+21:26
+user would be successful in locking that seat. Okay. After that user four will click on the
+21:34
+pay button. Remember that user 4 is already on the payment page. Okay. So
+21:40
+user 4 clicks on the pay button using the UPI payment option. But the thing is
+21:47
+user four's payment would be failed. Why? Because now the lock is not owned
+21:53
+by the user four. It is owned by the user five. All right. And this is the
+21:59
+same scenario which I was talking in the starting of the video in the requirement gathering part. Right?
+22:06
+And finally the user five will click on the pay button and that user would be
+22:12
+successful in paying. All right. So now let's check out the output.
+22:23
+So first let the demo 4 be completed.
+22:30
+Okay. So let's start with the demo one. So in the demo one we would be listing all the
+22:36
+shows based on the name of the movie. Right? So we selected the interstellar movie. So all the shows where this is
+22:42
+the movie are listed over here. Currently only one show is there in our system which is related to that movie
+22:50
+and this show will have all the details like the theater in which this show would be played and the screen in which
+22:57
+this show would be played. Right now in the demo two one user tries to
+23:05
+book the seat. So first that user would select some seats and click on the proceed button. So when that user clicks
+23:12
+on the proceed button, the booking would be created. And when the user is on the payment page, he will be selecting one
+23:19
+of the payment type. So over here the user has selected card payment method.
+23:24
+So he will be paying through the card. So 150 would be deducted accordingly. And finally the booking would be
+23:31
+confirmed from the created state. Okay. And in the demo three, two users would
+23:38
+try to book the seats and some of the seats would be overlapping, right? So in that case only one of the user should be
+23:46
+successful in creating the booking. So as you can see only one user is successful in creating the booking and
+23:54
+the other user failed to create the booking. Why? Because there was one seat
+24:00
+which was temporarily unavailable. So even if one seat is overlapping the
+24:07
+entire booking is failed. So the remaining seat will also not be locked
+24:12
+because of one overlapping seat. Okay. And the user who was successful in
+24:19
+creating the booking will proceed to pay. So he will choose one of the payment method and finally the amount
+24:26
+would be deducted. Right now coming to the demo four which showcases the lock
+24:32
+expiry after TTL. So over here user four selected some seeds and
+24:39
+created the booking. Right? He went to the payment page but he did not click on the pay button. Right? Currently he is
+24:46
+on payment page but he has not clicked the payment button. So after TTL so after 5 seconds users
+24:55
+five will basically try to select the same seat and click on
+25:01
+the proceed button and he will be successful in locking those seat right
+25:06
+and then the user four will click on the pay button. Okay. But the user four will
+25:14
+get this message that is all the seats are unavailable because those seats are
+25:20
+currently locked by user five because the lock which was held by user four has
+25:26
+been expired and now the owner of that lock is user five. Okay. So user five
+25:32
+will then click on the pay button and he will successfully pay the bill. Right?
+25:38
+So I hope now you understood the output. So now let's check out the code. Hi
+System Design Series
+25:43
+guys, there's a small note. If you are liking my LLD series and want me to also
+25:48
+make videos on system design, then please like and share my LLD videos so that I get motivated. So these are the
+25:55
+classes available in our book my show system. So firstly don't get overwhelmed
+Code Explanation
+26:00
+by seeing lots of classes present over here because one thing is all of this
+26:06
+classes has only few lines of codes. So it is very easier to code them up. So let's see all of them one by one. Let's
+26:13
+start with the enums. So we have this four enums. The first
+26:21
+one is the booking status. So the booking status would be in the created phase if the user selects the seat and
+26:29
+goes to the payment page. Okay. And when the user pays for the seat that time it
+26:35
+would be in confirmed state and if that payment fails then it would go into the failed phase and we also have this
+26:43
+cancelled phase if the user decides to cancel the booking. The second enum is the payment type. So currently our
+26:50
+system has two different payment methods. The first one is card and second is UPI. So we have these two
+26:56
+types of payment enums. Then we have this seat status. Now the
+27:02
+seat can be either available, locked or booked. Similarly, there are two
+27:08
+different types of seat. First one is regular and the second one is recliner. And you can add more types in future if
+27:15
+you want to add Now let's check out the models.
+27:23
+Theater show seat, regular seat, recliner seat, screen, movie and
+27:30
+booking. So the first one is theater. So each and every theater would be having this three
+27:36
+attributes which I have already explained in the class diagram, right? ID, name and the screens. And we can add
+27:43
+the screen into this hashmap using this add screen function. And we can get the
+27:49
+specific screen using the get screen function. Now going to the screen class.
+27:57
+So each and every screen would be having the ID and the seats present in that
+28:02
+screen. And we can add the seat using the add seat function and get the seats using the get seat function. Now coming
+28:09
+to the seat class. So this is the abstract seat class which has the ID and
+28:15
+the price associated with it. And there are two different types of seats present in our system. First is regular seat
+28:22
+which will return the type as the regular and the second one is recliner
+28:28
+seat which will return the type as a recliner and all the unique attributes related to that seat would be present in
+28:36
+this particular class over here. Okay.
+28:42
+Now
+28:48
+then we have this show class. So each and every show would have the all the details regarding the location and what
+28:55
+will be played in that show. Right? So we have the movie which is going to be played into this show and the exact
+29:03
+location that is the theater and the screen in which this show would be played. We also have the start and the
+29:09
+end time of the show. All right. Now coming to the movie. So each and every
+29:16
+movie would be having the ID, the name of that movie and the duration in
+29:22
+minutes for which this movie would be played. Right.
+29:27
+Now coming to the booking class. So each and every booking would be having several ids like booking ID, the id of
+29:34
+user who has booked, the id of the show which was booked, the ids of the seat
+29:40
+and the status of the booking. So initially when I create the object, this status would be in created phase, the
+29:47
+payment type which user has selected to pay for example UPI or card and the
+29:53
+total amount of all the seeds which user has selected. All right. So we have gone
+29:59
+through the models as well. Now let's check out the repositories and services.
+30:05
+So repositories are the classes where you write the CRUD functions like saving
+30:11
+and getting. Okay, you can add deleting and updating as well if you want. But in
+30:17
+our system we only need save and get. So this is the in-memory database where all
+30:23
+the movies would be stored and these are the CRU functions which will be performed on that in-memory database. So
+30:29
+this was the movie repository. Similarly we have the show repository and theater
+30:34
+repository. So all the code is similar in this classes.
+30:41
+So if I show you one of them then in the save function you'll just put
+30:46
+this theta into this inmemory database and for the get function you'll just
+30:51
+return the theater with this particular ID. All right and the service layer will
+30:58
+have the corresponding business logic. So for example
+31:03
+the movie service has this logic. Okay. So in the create movie
+31:09
+function you would be first creating the movie and once this movie has been
+31:15
+created you can save that into the database with the help of this save function present in the movie repository
+31:22
+right and you can also throw some exceptions if you want over here because this is the business layer right
+31:28
+similarly we have this get movie function as well. Now in the show apart
+31:33
+from the create show and the get show we also have this get shows by movie title. So over here you'll just iterate through
+31:41
+all the shows present in the show database and you'll filter those shows
+31:46
+who has this particular title right and finally we'll convert that into the
+31:53
+list. So by the way this is stream so we have to convert that into some data
+31:59
+structure right so that's the reason why I have converted that to list and I'm returning this list of shows to the end
+32:05
+user once the end user types a specific name of the movie okay so this is the
+32:12
+service layer for the movie service show service and
+32:17
+the theater service now coming to the payment strategy
+32:23
+we have a payment strategy interface with a function called as pay. So this
+32:28
+function takes the booking object. Now I'm passing the booking object because this object has all the details like the
+32:36
+amount which user has to pay and all the details of the users as well. Right? So
+32:41
+that's the reason why I pass the booking object as the input. You can also pass
+32:46
+the booking ID if you want. So if you pass the booking ID then you have to fetch the booking object from the
+32:52
+database in the implementation of this pay function. So we have two different
+32:58
+types of payment strategies. First one is UPI payment strategy. Over there you will
+33:04
+pay through the UPI and after that if it is successful then you'll return true as you'll return false. But currently for
+33:11
+the demo purpose I am just logging and returning as true. All right. And
+33:17
+similar thing is repeated in the card payment strategy.
+33:24
+Now the only four classes left are booking service and this lock providers.
+Concurrency
+33:30
+So let's see the lock provider first.
+33:37
+So we have this lock provider interface which has this four functions to be implemented. This will be either
+33:44
+implemented by in-memory lock provider or radius lock provider. But currently
+33:49
+in our code, we'll be using this in-memory lock provider. Now let's check out the in-memory lock provider. So in
+33:55
+the in-memory lock provider, we will be implementing this four functions. The first one is try lock which basically
+34:03
+locks this particular key for this much time duration. And this key is nothing
+34:09
+but the concatenation of show id
+34:15
+and the seat ID which user has selected. Okay. So we would be locking that
+34:22
+particular key. So by the way we are using the concurrent hashmap for the
+34:28
+locks. Okay. This is not the ordinary hashmap. It's concurrent hashmap. Why?
+34:34
+because I want to avoid the race condition while updating a specific key.
+34:40
+Right? So this is the key which I have already explained and this is the expiry object. Now each and every expiry object
+34:47
+would have two details. The first one is the deadline when this key would be
+34:52
+expired and the second one is the owner of that particular lock. Okay. So now
+34:59
+let's see this trio function. So over here we are first calculating the
+35:04
+current time in milliseconds and we are then creating the expiry object. So in
+35:10
+the expiry object the deadline would be the current time in millisecond plus the total time to leave which is 5 second in
+35:18
+our case. Okay, because we took 5 seconds as the TTL for the demo purpose,
+35:23
+right? And after that we also have the user ID. So this is the user ID who
+35:29
+would be owning that lock. Okay. Then after that I am checking whether this
+35:35
+key is present in the concurrent map or not. And if it is not present or if it
+35:42
+is present then I'm checking the deadline. If the deadline is less than the current time it means that the lock
+35:49
+has been expired or the lock is not there if it is null. So in those
+35:55
+situation I am updating the expiry object which you can see else I am not
+36:01
+touching the expiry object. All right. And finally I'm comparing that with the new expiry object. So if this particular
+36:08
+statement returns true it means that we are successful in locking else we are
+36:15
+not successful. So we'll return true or false according to that. Then we have this unlock function which would just
+36:21
+remove the key from the concurrent map. Then there is this function called as is
+36:28
+lock expired. So over here we'll first get the expiry object and we'll first check whether it is null or not. If it
+36:35
+is not null in that case we'll check the deadline. So the deadline for the lock
+36:41
+to be expired should be less than the current time in milliseconds. Right? So I'll be checking that and after that
+36:49
+there is one more function called as is locked by. So over here I'll check whether the owner of this lock is this
+36:56
+user or not. All right. So these were the four functions.
+37:02
+Now one more thing that I want to highlight is this sweeper instance of the schedule exeutor
+37:08
+service. Now what will this do? This will basically
+37:14
+perform this operation after every 1 minute. Okay. So the operation says that
+37:20
+we have to go through this concurrent map and remove all the expired keys.
+37:27
+Right. So in simpler words this weaper is going to remove all the expired locks
+37:35
+after every 1 minute. All right. So I hope you understood this point.
+37:41
+Now the last class remaining is the booking service. So let's check out that.
+37:50
+So this is the booking service class which will interact with the lock provider and the booking repo. So in the
+37:56
+book my show the TTL was 8 minutes right? So it was 8 into 60 into,000
+38:02
+right? But right now I am just setting it to 5 seconds. All right, because for
+38:09
+the demo purpose. Now these are the two functions that we discuss in the class diagram. The first
+38:15
+one is create function which would create the booking. So for that we need to lock the seats. So let's say two
+38:22
+users simultaneously tries to lock the seats that two same seat. So these are
+38:28
+the two users they both will come over here and go into this for loop simultaneously.
+38:35
+Right? and they would compute the same key because show id and the seat ID are same for both of the user. Then in that
+38:43
+case this would come over here and they would simultaneously call this pilock
+38:49
+function. But the thing we discuss about this function was
+38:57
+only one of them would be successful right because this is performed on the concurrent map. So that's the reason why
+39:04
+only one of them would be successful. Let's say T2 is successful. So T2 comes over here and T1
+39:12
+goes into this false state. So T2 will directly return
+39:19
+sit not available exception. Right? So it will go out of this function only directly. All right? So this basically
+39:27
+allows only one thread to be successful if the seats are overlapping. All right.
+39:39
+Now once one of the thread is successful in locking all those seats, that thread
+39:45
+would basically compute the total price of those seats using this for loop. And
+39:50
+after that we would be creating the booking object and then saving that booking object into the booking database
+39:57
+using this color function available in the repository layer. Right? And then
+40:02
+finally we'll return the booking object. All right. So this was the create booking function.
+40:08
+Now coming to the confirm booking. So over here we'll first check whether the
+40:13
+status of the booking is in created phase or not. If it is not in created phase we cannot confirm it. Right? So
+40:19
+first we'll check this and after that if it is in created phase we'll again
+40:27
+validate whether the lock is still there and the lock is owned by the current
+40:32
+user who is calling this confirm booking function. So we would iterate through
+40:37
+all the seats again and we would generate the key and check whether the lock is expired or not. So if the lock
+40:44
+is expired or the lock is not owned by current user in this two situation we
+40:52
+would throw the exception that is see it is not available. It means either the
+40:57
+lock is not there with me or lock was there but it is expired.
+41:02
+Right? And finally based on the payment type which the current user selected we
+41:08
+would be creating the strategy using the factory design pattern. Right? And after
+41:14
+that we would be calling the pay function of that strategy. And finally we would unlock all those
+41:22
+seats which were locked. Right? Because now they are permanently unavailable.
+41:28
+Okay. And finally we will convert the booking status to confirmed status from
+41:34
+the created status. Right? So this was
+41:40
+the confirm booking function. So we have seen all the classes which are present
+41:46
+in this application. So now let's check out some scenarios in order to understand that why we should
+Why redis is required?
+41:52
+not use in-memory lock provider in our production application. So basically
+41:57
+your backend application would be deployed on this EC2 instance. Right? So the end user who wants to book the seat
+42:04
+S1 will interact with the application in this server and create a lock on that
+42:10
+particular seat. Right? So this was the scenario which we were working on till
+42:16
+now. But let's assume that your application became very popular and the
+42:22
+traffic on your application increased a lot. Right? So for obvious reason you
+42:28
+have to scale the servers horizontally. So let's say you created server one and
+42:34
+server two and you deployed your application on both of those server.
+42:39
+Okay. And now there are two users who wants to book the seat S1. All right. So
+42:45
+what will happen is this user one will first interact with the load balancer and load balancer can redirect this user
+42:53
+one to any one of the server. So let's assume that this load balancer redirected this user to server one.
+43:00
+So on this server we will create a lock on the seat S1.
+43:11
+Right. So this user one has successfully
+43:17
+created a lock on seat S1 in the server one. And this lock which is created is
+43:23
+inmemory lock. Okay. It means that this lock is not present in the server two.
+43:30
+It is only present in the server one. Right? So now let's assume that user two also wants the same seat. So it will
+43:37
+interact with the load balancer and load balancer can redirect this user to any one of the server. Right? So let's say
+43:43
+it redirected the user to the server two. Now the user two sees that the seat is not locked which is a problem. Right?
+43:50
+Because it is already locked by user one. Although it is on different server
+43:56
+but this would cause problem because user one is also getting seat S1
+44:01
+and user two is also getting seat S1 at the end of the day. Right? So that's the
+44:07
+problem. Now in order to solve this problem, we have introduced the distributed lock provider for example
+44:14
+radius. So what will happen is user one wants to book a seat S1. So it will
+44:19
+interact with the load balancer. Load balancer will redirect that user to one of the server. Let's say it redirects
+44:26
+the user to server one. Now server one will lock the seat S1. Okay. And that
+44:33
+lock would be present on the radius. Okay. Over here.
+44:38
+Now user two will come. User two wants to log the same seat. So it will interact with the load balancer. Load
+44:44
+balancer will redirect to one of the server. So let's say it redirected this user to server two. Now this server two
+44:51
+will check whether there is a lock on the seat S1. So it will interact with
+44:56
+the radius and radius will tell yes there is a lock on seat S1. So this
+45:01
+server two will deny this user to create a lock on that seat. Right? So we have
+45:08
+successfully solved that particular problem because now we are using the distributed lock provider like radius.
+45:15
+Okay. So I hope now you have understood entire book my show LLD. If you do then
+45:22
+please like the video and share this video with your friends. Thanks for watching.

@@ -1,0 +1,43 @@
+The key part to focus on
+
+For your interview, the most important code is actually this flow:
+
+createBooking()
+      |
+      | tryLock(S1) → true
+      |
+      | tryLock(S2) → false
+      |
+      ↓
+release S1
+      |
+      ↓
+booking FAILED
+
+And tryLock() itself is non-blocking(means if any thread is not getting lock then it does not wait and it releases all the locks it has, so here we never have a chance of deadlock)
+
+Seat available
+    → acquire
+    → return true
+
+Seat already locked
+    → don't wait
+    → return false
+
+So the design handles the exact case you asked about:
+
+User 1 → S1, S2
+User 2 → S2, S3
+
+If User 1 gets S1
+and User 2 gets S2
+
+User 1 tries S2
+      ↓
+false
+      ↓
+release S1
+      ↓
+User 1 booking fails
+
+One important implementation detail: ConcurrentHashMap.compute() makes the check-and-acquire for one seat key atomic, so two threads cannot simultaneously acquire the same showId:seatId lock in the in-memory implementation.
