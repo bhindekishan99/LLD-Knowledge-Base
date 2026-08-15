@@ -6,22 +6,17 @@ import java.util.concurrent.ConcurrentHashMap;
 /*
  * Cache LLD - Single File
  *
- * Based on the uploaded Cache implementation.
+ * Key-Based Thread Affinity / KeyBasedExecutor is intentionally removed.
  *
- * Thread Affinity / KeyBasedExecutor is intentionally removed.
- *
- * Main ideas:
- * 1. CacheStorage      -> in-memory cache
- * 2. DBStorage         -> persistent storage
- * 3. WritePolicy       -> controls how writes happen
- * 4. EvictionAlgorithm -> controls which key is removed
+ * Main components:
+ * 1. CacheStorage       -> stores actual cache data
+ * 2. DBStorage          -> represents persistent storage
+ * 3. WritePolicy       -> decides how a write is performed
+ * 4. EvictionAlgorithm -> maintains eviction metadata/order
  *
  * Strategy Pattern:
  *     WritePolicy       -> WriteThroughPolicy
- *     EvictionAlgorithm -> LRUEvictionAlgorithm
- *
- * To change the policy, pass a different implementation
- * to Cache's constructor. Cache itself does not change.
+ *     EvictionAlgorithm -> LRUEvictionAlgorithm / FIFOEvictionAlgorithm
  */
 public class CacheDemo {
 
@@ -75,7 +70,6 @@ public class CacheDemo {
 
         @Override
         public V get(K key) throws Exception {
-
             V value = cache.get(key);
 
             if (value == null) {
@@ -88,7 +82,6 @@ public class CacheDemo {
 
         @Override
         public void remove(K key) throws Exception {
-
             if (!cache.containsKey(key)) {
                 throw new Exception(
                         "Key not found in cache: " + key);
@@ -116,9 +109,6 @@ public class CacheDemo {
     static class SimpleDBStorage<K, V>
             implements DBStorage<K, V> {
 
-        /*
-         * Mock DB for interview/demo purposes.
-         */
         private final Map<K, V> database =
                 new ConcurrentHashMap<>();
 
@@ -129,7 +119,6 @@ public class CacheDemo {
 
         @Override
         public V read(K key) throws Exception {
-
             V value = database.get(key);
 
             if (value == null) {
@@ -142,7 +131,6 @@ public class CacheDemo {
 
         @Override
         public void delete(K key) throws Exception {
-
             if (!database.containsKey(key)) {
                 throw new Exception(
                         "Key not found in DB: " + key);
@@ -169,14 +157,14 @@ public class CacheDemo {
     /*
      * Write-Through:
      *
-     * update()
-     *    |
-     *    +----> Cache
-     *    |
-     *    +----> DB
+     *     put()
+     *       |
+     *       +----> Cache
+     *       |
+     *       +----> DB
      *
-     * Both writes are started concurrently and we wait
-     * for both to finish.
+     * Both writes happen concurrently and Cache waits
+     * until both complete.
      */
     static class WriteThroughPolicy<K, V>
             implements WritePolicy<K, V> {
@@ -191,7 +179,6 @@ public class CacheDemo {
 
             CompletableFuture<Void> cacheFuture =
                     CompletableFuture.runAsync(() -> {
-
                         try {
                             cacheStorage.put(key, value);
                         } catch (Exception e) {
@@ -201,7 +188,6 @@ public class CacheDemo {
 
             CompletableFuture<Void> dbFuture =
                     CompletableFuture.runAsync(() -> {
-
                         try {
                             dbStorage.write(key, value);
                         } catch (Exception e) {
@@ -217,44 +203,52 @@ public class CacheDemo {
     }
 
     /*
-     * Example of another policy.
+     * Add another WritePolicy implementation when needed.
      *
-     * This is only here to demonstrate how easily the strategy
-     * can be replaced. The Cache class does not need to change.
+     * Example:
      *
-     * In a real system, Write-Around could write to DB first
-     * and skip updating the cache.
+     * static class AnotherWritePolicy<K, V>
+     *         implements WritePolicy<K, V> {
+     *
+     *     @Override
+     *     public void write(
+     *             K key,
+     *             V value,
+     *             CacheStorage<K, V> cacheStorage,
+     *             DBStorage<K, V> dbStorage)
+     *             throws Exception {
+     *
+     *         // Different write behavior
+     *     }
+     * }
+     *
+     * Cache itself does not need to change.
      */
-    static class WriteAroundPolicy<K, V>
-            implements WritePolicy<K, V> {
-
-        @Override
-        public void write(
-                K key,
-                V value,
-                CacheStorage<K, V> cacheStorage,
-                DBStorage<K, V> dbStorage)
-                throws Exception {
-
-            dbStorage.write(key, value);
-        }
-    }
 
     // =========================================================
     // EVICTION POLICY - STRATEGY
     // =========================================================
 
+    /*
+     * The Cache controls the flow.
+     *
+     * EvictionAlgorithm only manages eviction metadata.
+     *
+     * existingKeyAccessed(key)
+     *     -> existing key was accessed
+     *
+     * addNewKey(key)
+     *     -> a new key entered the cache
+     *
+     * evictKey()
+     *     -> cache is full; return a key to remove
+     */
     interface EvictionAlgorithm<K> {
 
-        /*
-         * Called whenever a key becomes recently used.
-         */
-        void keyAccessed(K key);
+        void existingKeyAccessed(K key);
 
-        /*
-         * Removes a key from the eviction structure
-         * and returns the key that should be evicted.
-         */
+        void addNewKey(K key);
+
         K evictKey();
     }
 
@@ -353,7 +347,8 @@ public class CacheDemo {
      *
      * HashMap<K, Node> + Doubly Linked List
      *
-     * keyAccessed() -> O(1)
+     * existingKeyAccessed() -> O(1)
+     * addNewKey()   -> O(1)
      * evictKey()    -> O(1)
      */
     static class LRUEvictionAlgorithm<K>
@@ -367,26 +362,35 @@ public class CacheDemo {
                 new HashMap<>();
 
         /*
-         * LRU has two structures that must stay consistent:
-         *
-         *     HashMap + Doubly Linked List
-         *
-         * Therefore these operations are synchronized.
+         * Both HashMap and LinkedList represent the same
+         * eviction metadata, so their updates must be atomic.
          */
         @Override
-        public synchronized void keyAccessed(K key) {
+        public synchronized void existingKeyAccessed(K key) {
 
-            if (keyToNode.containsKey(key)) {
+            /*
+             * existingKeyAccessed() is called only for a key that
+             * already exists in the cache.
+             */
+            DoublyLinkedListNode<K> node =
+                    keyToNode.get(key);
 
-                DoublyLinkedListNode<K> node =
-                        keyToNode.get(key);
-
-                list.detach(node);
-                list.addAtTail(node);
-
+            if (node == null) {
                 return;
             }
 
+            // Existing key becomes Most Recently Used.
+            list.detach(node);
+            list.addAtTail(node);
+        }
+
+        @Override
+        public synchronized void addNewKey(K key) {
+
+            /*
+             * addNewKey() is called only when a completely
+             * new key enters the cache.
+             */
             DoublyLinkedListNode<K> node =
                     new DoublyLinkedListNode<>(key);
 
@@ -397,6 +401,7 @@ public class CacheDemo {
         @Override
         public synchronized K evictKey() {
 
+            // Head = Least Recently Used.
             DoublyLinkedListNode<K> node =
                     list.getHead();
 
@@ -406,6 +411,7 @@ public class CacheDemo {
 
             K key = node.getValue();
 
+            // Remove from eviction data structure.
             list.removeHead();
             keyToNode.remove(key);
 
@@ -413,14 +419,19 @@ public class CacheDemo {
         }
     }
 
+    // =========================================================
+    // FIFO EVICTION STRATEGY
+    // =========================================================
+
     /*
-     * Example alternative eviction strategy.
-     *
      * FIFO:
-     * remove the oldest inserted key.
      *
-     * The implementation is intentionally simple for
-     * demonstrating Strategy replacement.
+     * existingKeyAccessed() does nothing because accessing an
+     * existing key does not change FIFO order.
+     *
+     * addNewKey() adds the new key to the end.
+     *
+     * evictKey() removes the oldest key.
      */
     static class FIFOEvictionAlgorithm<K>
             implements EvictionAlgorithm<K> {
@@ -428,27 +439,19 @@ public class CacheDemo {
         private final Queue<K> queue =
                 new ArrayDeque<>();
 
-        private final Set<K> present =
-                new HashSet<>();
+        @Override
+        public synchronized void existingKeyAccessed(K key) {
+            // FIFO order does not change on access.
+        }
 
         @Override
-        public synchronized void keyAccessed(K key) {
-
-            if (present.add(key)) {
-                queue.offer(key);
-            }
+        public synchronized void addNewKey(K key) {
+            queue.offer(key);
         }
 
         @Override
         public synchronized K evictKey() {
-
-            K key = queue.poll();
-
-            if (key != null) {
-                present.remove(key);
-            }
-
-            return key;
+            return queue.poll();
         }
     }
 
@@ -461,11 +464,6 @@ public class CacheDemo {
         private final CacheStorage<K, V> cacheStorage;
         private final DBStorage<K, V> dbStorage;
 
-        /*
-         * These are Strategy objects.
-         *
-         * Cache does not know the concrete implementation.
-         */
         private final WritePolicy<K, V> writePolicy;
         private final EvictionAlgorithm<K> evictionAlgorithm;
 
@@ -482,57 +480,104 @@ public class CacheDemo {
         }
 
         /*
-         * Read operation.
+         * GET
          *
-         * Synchronized because a cache read also changes
-         * the LRU ordering.
+         *     CacheStorage.get() (if not present then we'll read from DB)
+         *             +
+         *     evictionPolicy.existingKeyAccessed()
+         *
+         * existingKeyAccessed() is only for an existing key.
          */
-        public synchronized V get(K key)
-                throws Exception {
+        public synchronized V get(K key) throws Exception {
+            // 1. Try cache
+            if (cacheStorage.containsKey(key)) {
 
-            if (!cacheStorage.containsKey(key)) {
-                throw new Exception(
-                        "Key not found in cache: " + key);
+                V value = cacheStorage.get(key);
+
+                // Existing cache key was accessed
+                evictionAlgorithm.existingKeyAccessed(key);
+
+                return value;
             }
 
-            V value = cacheStorage.get(key);
+            // 2. Cache miss → try DB (dbStorage.read() thorws exeption if key is not present in DB)
+            V value = dbStorage.read(key);
 
-            // get() makes this key most recently used.
-            evictionAlgorithm.keyAccessed(key);
+            // 3. Key exists in DB but not cache.
+            //    Add it to cache.
+            if (cacheStorage.size() >= cacheStorage.getCapacity()) {
+
+                K evictedKey =
+                        evictionAlgorithm.evictKey();
+
+                cacheStorage.remove(evictedKey);
+            }
+
+            cacheStorage.put(key, value);
+
+            evictionAlgorithm.addNewKey(key);
 
             return value;
         }
 
         /*
-         * Write operation.
+         * PUT
          *
-         * For this interview implementation, the complete
-         * cache update is synchronized so that:
+         * Case 1: Key already exists
          *
-         *     capacity check
+         *     update value
          *          +
-         *     eviction
-         *          +
-         *     write
-         *          +
-         *     LRU update
+         *     existingKeyAccessed(key)
          *
-         * remain consistent.
+         * Case 2: Key is new and cache has space
          *
-         * We intentionally do NOT use KeyBasedExecutor.
+         *     put into cache
+         *          +
+         *     addNewKey(key)
+         *
+         * Case 3: Key is new and cache is full
+         *
+         *     evictKey()
+         *          ↓
+         *     remove evicted key
+         *          ↓
+         *     put new key
+         *          ↓
+         *     addNewKey(newKey)
+         *
+         * The complete flow is synchronized so CacheStorage
+         * and EvictionAlgorithm remain logically in sync.
          */
         public synchronized void put(
                 K key,
                 V value)
                 throws Exception {
 
-            boolean keyAlreadyExists =
-                    cacheStorage.containsKey(key);
+            // -------------------------------------------------
+            // Case 1: Key already exists
+            // -------------------------------------------------
 
-            if (!keyAlreadyExists &&
-                    cacheStorage.size() >=
-                            cacheStorage.getCapacity()) {
+            if (cacheStorage.containsKey(key)) {
 
+                writePolicy.write(
+                        key,
+                        value,
+                        cacheStorage,
+                        dbStorage);
+
+                evictionAlgorithm.existingKeyAccessed(key);
+
+                return;
+            }
+
+            // -------------------------------------------------
+            // Case 2 / 3: New key
+            // -------------------------------------------------
+
+            if (cacheStorage.size() >=
+                    cacheStorage.getCapacity()) {
+
+                // Cache is full -> ask policy which key to evict.
                 K evictedKey =
                         evictionAlgorithm.evictKey();
 
@@ -542,8 +587,10 @@ public class CacheDemo {
             }
 
             /*
-             * The selected WritePolicy decides how the
-             * cache and DB are updated.
+             * Write the new key.
+             *
+             * With WriteThroughPolicy this updates both
+             * cache and DB.
              */
             writePolicy.write(
                     key,
@@ -551,13 +598,16 @@ public class CacheDemo {
                     cacheStorage,
                     dbStorage);
 
-            /*
-             * Tell the eviction strategy that this key
-             * was just used.
-             */
-            evictionAlgorithm.keyAccessed(key);
+            // Tell eviction policy that a new key entered.
+            evictionAlgorithm.addNewKey(key);
         }
 
+        /*
+         * Direct DB read.
+         *
+         * This is mainly useful for demonstrating the
+         * Cache + DB design in an interview.
+         */
         public V getFromDB(K key)
                 throws Exception {
 
@@ -579,10 +629,10 @@ public class CacheDemo {
                 new SimpleDBStorage<>();
 
         /*
-         * Select policies here.
+         * Select the policies here.
          *
-         * Changing these objects does NOT require changing
-         * the Cache class.
+         * Cache does not need to change when we replace
+         * either strategy.
          */
         WritePolicy<String, String> writePolicy =
                 new WriteThroughPolicy<>();
@@ -606,24 +656,22 @@ public class CacheDemo {
         cache.put("C", "Cherry");
 
         /*
-         * LRU order:
+         * LRU:
          *
          * A -> B -> C
-         *
-         * A = LRU
-         * C = MRU
+         * ↑         ↑
+         * LRU      MRU
          */
 
-        // Access A.
+        // Access A -> A becomes MRU.
         cache.get("A");
 
         /*
-         * LRU order becomes:
+         * LRU becomes:
          *
          * B -> C -> A
-         *
-         * B = LRU
-         * A = MRU
+         * ↑         ↑
+         * LRU      MRU
          */
 
         // -----------------------------------------------------
@@ -635,21 +683,22 @@ public class CacheDemo {
         /*
          * Cache was full.
          *
-         * B was least recently used.
+         * B was LRU, so:
          *
-         * Therefore:
+         * 1. evictionPolicy.evictKey() -> B
+         * 2. cacheStorage.remove(B)
+         * 3. cacheStorage.put(D)
+         * 4. evictionPolicy.addNewKey(D)
          *
-         * B is evicted.
+         * Final cache:
          *
-         * Cache:
          * A, C, D
          */
 
         try {
             cache.get("B");
         } catch (Exception e) {
-            System.out.println(
-                    "B was evicted.");
+            System.out.println("B was evicted.");
         }
 
         System.out.println(
@@ -661,30 +710,13 @@ public class CacheDemo {
         System.out.println(
                 "D = " + cache.get("D"));
 
-        // -----------------------------------------------------
-        // Change eviction strategy
-        // -----------------------------------------------------
-
         /*
-         * To use FIFO instead of LRU:
+         * To switch to FIFO:
          *
          * EvictionAlgorithm<String> evictionPolicy =
          *         new FIFOEvictionAlgorithm<>();
          *
-         * Cache implementation remains unchanged.
-         */
-
-        // -----------------------------------------------------
-        // Change write strategy
-        // -----------------------------------------------------
-
-        /*
-         * To use another write policy:
-         *
-         * WritePolicy<String, String> writePolicy =
-         *         new WriteAroundPolicy<>();
-         *
-         * Again, Cache implementation remains unchanged.
+         * Nothing inside Cache needs to change.
          */
     }
 }
