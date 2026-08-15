@@ -124,7 +124,8 @@ ReadLock: It is managed through the ReadWriteLock interface and implemented by t
 ```Text
 Shared Access: Many reader threads can hold the read lock at the exact same time.
 
-Mutual Exclusion with Writers: If a thread wants to write (acquire a write lock), it must wait until all active read locks are released. Conversely, if a write lock is active, no threads can acquire a read lock.
+Mutual Exclusion with Writers: If a thread wants to write (acquire a write lock), it must wait until all active read locks are released.
+Conversely, if a write lock is active, no threads can acquire a read lock.
 
 Use Case: It optimizes performance in read-heavy systems where data changes infrequently but is read constantly.
 ```
@@ -179,7 +180,7 @@ B → C → A
 
 Therefore, `get()` also needs exclusive access to the LRU structure.
 
-### Problem
+### Problem with global lock
 
 ```text
 Thread 1 → user_1
@@ -209,13 +210,10 @@ WAIT
 
 ## 4. Striped Locking
 
+It is a computer programming technique that divides a large data structure into smaller, independent partitions
 Partition the cache into `N` independent shards.
 
-Each shard has:
-
-- Map
-- LRU list
-- Lock
+Each shard has independent cache(like shards) it self
 
 ```text
                          Cache
@@ -315,7 +313,7 @@ This improves concurrency but only approximates global LRU ordering.
 ```text
 Global Lock
     ↓
-Simple + Correct
+Simple and provides Correctness
     ↓
 Poor scalability
 
@@ -323,7 +321,7 @@ Striped Locking
     ↓
 Multiple independent shards
     ↓
-Different keys can execute in parallel
+Different keys can execute in parallel with correctness
     ↓
 Better scalability
     ↓
