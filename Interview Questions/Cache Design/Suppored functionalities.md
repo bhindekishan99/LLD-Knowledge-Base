@@ -27,3 +27,8 @@
 - **Thread Safety**
   - Cache operations are synchronized.
   - Eviction metadata is also updated safely.
+  - See in extensions.md
+  - 1. Cache with TTL
+  - 2. Cache with hit ration
+  - 3. Striped locking (Sharding)
+  
