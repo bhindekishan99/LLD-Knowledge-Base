@@ -1,94 +1,254 @@
-# Cache System - Class Diagram
+# Cache Class Diagram
 
 ```mermaid
 classDiagram
 
     %% =========================
-    %% Storage Layer
+    %% CACHE
     %% =========================
 
-    class CacheStorage~K,V~ {
-        <<interface>>
-        +put(K key, V value) void
-        +get(K key) V
-        +delete(K key) void
-    }
+    class Cache {
+        -CacheStorage cacheStorage
+        -DBStorage dbStorage
+        -WritePolicy writePolicy
+        -EvictionAlgorithm evictionAlgorithm
 
-    class DBStorage~K,V~ {
-        <<interface>>
-        +write(K key, V value) void
-        +read(K key) V
-        +delete(K key) void
+        +get(key) value
+        +put(key, value) void
+        +getFromDB(key) value
     }
 
 
     %% =========================
-    %% Cache Storage Implementation
+    %% CACHE STORAGE
     %% =========================
 
-    class InMemoryCacheStorage~K,V~ {
-        -ConcurrentHashMap~K,V~ cache
-        +put(K key, V value) void
-        +get(K key) V
-        +delete(K key) void
+    class CacheStorage {
+        <<interface>>
+
+        +put(key, value) void
+        +get(key) value
+        +remove(key) void
+        +containsKey(key) boolean
+        +size() int
+        +getCapacity() int
+    }
+
+    class InMemoryCacheStorage {
+        -Map cache
+        -int capacity
+
+        +put(key, value) void
+        +get(key) value
+        +remove(key) void
+        +containsKey(key) boolean
+        +size() int
+        +getCapacity() int
     }
 
     CacheStorage <|.. InMemoryCacheStorage
 
 
     %% =========================
-    %% Write Policies
+    %% DATABASE STORAGE
     %% =========================
 
-    class WritePolicy~K,V~ {
+    class DBStorage {
         <<interface>>
-        +write(K key, V value, CacheStorage cacheStorage, DBStorage dbStorage) void
+
+        +write(key, value) void
+        +read(key) value
+        +delete(key) void
     }
 
-    class WriteThroughPolicy~K,V~ {
-        +write(K key, V value, CacheStorage cacheStorage, DBStorage dbStorage) void
+    class SimpleDBStorage {
+        -Map database
+
+        +write(key, value) void
+        +read(key) value
+        +delete(key) void
     }
 
-    class WriteBackPolicy~K,V~ {
-        +write(K key, V value, CacheStorage cacheStorage, DBStorage dbStorage) void
+    DBStorage <|.. SimpleDBStorage
+
+
+    %% =========================
+    %% WRITE POLICY
+    %% =========================
+
+    class WritePolicy {
+        <<interface>>
+
+        +write(key, value, cacheStorage, dbStorage) void
     }
 
-    class WriteAroundPolicy~K,V~ {
-        +write(K key, V value, CacheStorage cacheStorage, DBStorage dbStorage) void
+    class WriteThroughPolicy {
+        +write(key, value, cacheStorage, dbStorage) void
     }
 
     WritePolicy <|.. WriteThroughPolicy
-    WritePolicy <|.. WriteBackPolicy
-    WritePolicy <|.. WriteAroundPolicy
 
 
     %% =========================
-    %% Cache
+    %% EVICTION POLICY
     %% =========================
 
-    class Cache~K,V~ {
-        -CacheStorage~K,V~ cacheStorage
-        -DBStorage~K,V~ dbStorage
-        -WritePolicy~K,V~ writePolicy
+    class EvictionAlgorithm {
+        <<interface>>
 
-        +get(K key) V
-        +put(K key, V value) void
-        +delete(K key) void
+        +existingKeyAccessed(key) void
+        +addNewKey(key) void
+        +evictKey() key
     }
+
+    class LRUEvictionAlgorithm {
+        -DoublyLinkedList list
+        -Map keyToNode
+
+        +existingKeyAccessed(key) void
+        +addNewKey(key) void
+        +evictKey() key
+    }
+
+    class FIFOEvictionAlgorithm {
+        -Queue queue
+
+        +existingKeyAccessed(key) void
+        +addNewKey(key) void
+        +evictKey() key
+    }
+
+    EvictionAlgorithm <|.. LRUEvictionAlgorithm
+    EvictionAlgorithm <|.. FIFOEvictionAlgorithm
+
+
+    %% =========================
+    %% LRU DATA STRUCTURE
+    %% =========================
+
+    class DoublyLinkedList {
+        -DoublyLinkedListNode head
+        -DoublyLinkedListNode tail
+
+        +addAtTail(node) void
+        +detach(node) void
+        +getHead() node
+        +removeHead() void
+    }
+
+    class DoublyLinkedListNode {
+        -value
+        -prev
+        -next
+
+        +getValue() value
+    }
+
+    LRUEvictionAlgorithm --> DoublyLinkedList : uses
+    LRUEvictionAlgorithm --> DoublyLinkedListNode : keyToNode
+    DoublyLinkedList --> DoublyLinkedListNode : manages
+
+
+    %% =========================
+    %% CACHE RELATIONSHIPS
+    %% =========================
 
     Cache --> CacheStorage : uses
     Cache --> DBStorage : uses
     Cache --> WritePolicy : uses
+    Cache --> EvictionAlgorithm : uses
+```
 
+## Design Overview
 
-    %% =========================
-    %% Relationships
-    %% =========================
+```mermaid
+flowchart TD
 
-    WriteThroughPolicy --> CacheStorage : writes
-    WriteThroughPolicy --> DBStorage : writes
+    Client --> Cache
 
-    WriteBackPolicy --> CacheStorage : writes
-    WriteBackPolicy --> DBStorage : async write
+    Cache --> CacheStorage
+    Cache --> DBStorage
+    Cache --> WritePolicy
+    Cache --> EvictionAlgorithm
 
-    WriteAroundPolicy --> DBStorage : writes
+    CacheStorage --> InMemoryCacheStorage
+
+    DBStorage --> SimpleDBStorage
+
+    WritePolicy --> WriteThroughPolicy
+
+    EvictionAlgorithm --> LRUEvictionAlgorithm
+    EvictionAlgorithm --> FIFOEvictionAlgorithm
+
+    LRUEvictionAlgorithm --> DoublyLinkedList
+    LRUEvictionAlgorithm --> DoublyLinkedListNode
+```
+
+## Eviction Strategy
+
+```text
+                 EvictionAlgorithm
+                  <<interface>>
+                        |
+              +---------+---------+
+              |                   |
+              ▼                   ▼
+     LRUEvictionAlgorithm   FIFOEvictionAlgorithm
+              |
+              |
+              ▼
+      DoublyLinkedList
+              |
+              ▼
+    DoublyLinkedListNode
+```
+
+### EvictionAlgorithm Responsibilities
+
+```text
+existingKeyAccessed(key)
+    → Existing key was accessed
+
+addNewKey(key)
+    → New key entered the cache
+
+evictKey()
+    → Cache is full
+    → Return key that should be removed
+```
+
+### LRU
+
+```text
+LRUEvictionAlgorithm
+        |
+        +-- HashMap<Key, Node>
+        |
+        +-- DoublyLinkedList
+```
+
+### FIFO
+
+```text
+FIFOEvictionAlgorithm
+        |
+        +-- Queue<Key>
+```
+
+## Strategy Pattern
+
+```text
+Cache
+ |
+ +---- WritePolicy
+ |        |
+ |        +---- WriteThroughPolicy
+ |
+ +---- EvictionAlgorithm
+          |
+          +---- LRUEvictionAlgorithm
+          |
+          +---- FIFOEvictionAlgorithm
+```
+
+`Cache` depends on the **interfaces**, so the eviction strategy can be changed without modifying `Cache`.
