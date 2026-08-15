@@ -1,0 +1,111 @@
+# Java Generics
+
+## What are Generics?
+
+Generics allow a class or collection to work with a **specific type** while providing compile-time type safety.
+
+### Without Generics
+
+```java
+List list = new ArrayList();
+
+list.add(10);
+list.add("Hello");
+
+Integer x = (Integer) list.get(1); // Runtime error
+With Generics
+List<Integer> list = new ArrayList<>();
+
+list.add(10);
+list.add("Hello"); // ❌ Compile-time error
+
+Integer x = list.get(0);
+
+Main benefit: Type safety + no unnecessary casting.
+
+Generic Class
+
+T is a type parameter (a placeholder for a type).
+
+class Box<T> {
+
+    private T value;
+
+    void set(T value) {
+        this.value = value;
+    }
+
+    T get() {
+        return value;
+    }
+}
+
+Usage:
+
+Box<Integer> box = new Box<>();
+
+box.set(10);
+
+Integer value = box.get();
+
+Here:
+
+T = Integer
+
+We can reuse the same class:
+
+Box<String> box = new Box<>();
+
+box.set("Hello");
+
+Here:
+
+T = String
+Multiple Type Parameters
+class Pair<K, V> {
+
+    K key;
+    V value;
+}
+
+Usage:
+
+Pair<String, Integer> pair = new Pair<>();
+
+Here:
+
+K = String
+V = Integer
+
+This is the same idea used by:
+
+Map<String, User>
+K = String
+V = User
+LLD Example
+
+A generic Cache:
+
+class Cache<K, V> {
+
+    V get(K key) {
+        // ...
+        return null;
+    }
+
+    void put(K key, V value) {
+        // ...
+    }
+}
+
+Now the same class can be used for:
+
+Cache<String, User>
+Cache<String, Movie>
+Cache<String, Booking>
+Remember
+
+Generics = type placeholders that make code reusable and type-safe.
+
+T  → one type
+K,V → two types
