@@ -1,0 +1,10 @@
+Set	                Duplicates	    Iteration order
+-----------------------------------------------------------
+HashSet	            Not allowed	    No guaranteed order
+LinkedHashSet	    Not allowed	    Insertion order
+TreeSet	            Not allowed	    Sorted order
+
+
+
+* TreeSet uses a self-balancing binary search tree internally—specifically a Red-Black Tree.
+* Internally: TreeSet → TreeMap → Red-Black Tree

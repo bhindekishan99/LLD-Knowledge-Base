@@ -1,0 +1,27 @@
+Student is class with name and id
+
+
+For a max-heap (high ID first):
+(student1, student2) -> {
+    if (student1.id > student2.id) {
+        return -1; // Yes: student1 should come first
+    }
+
+    if (student1.id < student2.id) {
+        return 1;  // No: student2 should come first
+    }
+
+    return 0; // Same priority
+}
+For a min-heap (low ID first):
+(student1, student2) -> {
+    if (student1.id < student2.id) {
+        return -1; // Yes: student1 should come first
+    }
+
+    if (student1.id > student2.id) {
+        return 1;  // No: student2 should come first
+    }
+
+    return 0; // Same priority
+}

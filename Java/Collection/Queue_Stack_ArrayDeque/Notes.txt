@@ -1,0 +1,9 @@
+Deque<Type> dataStructure = new ArrayDeque<>();
+
+For normal queue and stack use cases, prefer ArrayDeque over LinkedList. It is array-backed, has less memory overhead, and is usually faster.
+
+This dataStructure can act as Queue, Deque and Stack as well
+
+Queue → offer(), peek(), poll()
+Deque → offerFirst(), offerLast(), peekFirst(), peekLast(), pollFirst(), pollLast()
+Stack → push(), peek(), pop()

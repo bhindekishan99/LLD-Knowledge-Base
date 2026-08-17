@@ -1,0 +1,36 @@
+ArrayList
+Learn: add, get, set, remove, contains, loop.
+Exercise: store student names; search, update, and remove one.
+
+LinkedList
+Learn why it differs from ArrayList; also use it as a Queue/Deque.
+Exercise: browser history or a simple waiting line.
+
+HashSet
+Learn uniqueness, equals() and hashCode().
+Exercise: remove duplicate words from a sentence.
+
+LinkedHashSet and TreeSet
+Learn insertion order vs sorted order.
+Exercise: maintain unique usernames in entered order, then print a sorted version.
+
+HashMap
+Learn put, get, getOrDefault, containsKey, remove, entrySet.
+Exercise: count frequency of each character or word.
+
+LinkedHashMap and TreeMap
+Learn predictable insertion order vs key-sorted order.
+Exercise: store marks by student ID and print them in sorted-ID order.
+
+Queue and PriorityQueue
+Learn offer, peek, poll.
+Exercise: customer service queue; then task processing by priority.
+
+Deque / ArrayDeque
+Learn addFirst, addLast, removeFirst, removeLast, peekFirst.
+Exercise: implement a stack and a queue using ArrayDeque.
+
+Concurrent collections
+Learn these after threads: ConcurrentHashMap, BlockingQueue, CopyOnWriteArrayList.
+
+For every topic, make one Java file with this structure:
