@@ -107,7 +107,7 @@ synchronized (X) { ... }
 means:
 
 > Only one thread at a time can execute code synchronized on the **same `X` object**.
-Java's `synchronized` allows only one thread at a time to execute a critical section protected by the **same lock object**.
+> Java's `synchronized` allows only one thread at a time to execute a critical section protected by the **same lock object**.
 
 Example:
 
@@ -440,14 +440,14 @@ When concurrency comes up in an LLD interview, ask:
 
 # Common LLD Examples
 
-| Problem | Shared Resource | Concurrency Concern |
-|---|---|---|
-| Inventory | Product quantity | Two users purchasing the same stock |
-| BookMyShow | Seat | Two users booking the same seat |
-| Parking Lot | Parking spot | Two cars getting the same spot |
-| Vending Machine | Product quantity | Multiple purchases |
-| Banking | Account balance | Concurrent withdrawal |
-| Warehouse Transfer | Two warehouses | Atomicity + deadlock |
+| Problem            | Shared Resource  | Concurrency Concern                 |
+| ------------------ | ---------------- | ----------------------------------- |
+| Inventory          | Product quantity | Two users purchasing the same stock |
+| BookMyShow         | Seat             | Two users booking the same seat     |
+| Parking Lot        | Parking spot     | Two cars getting the same spot      |
+| Vending Machine    | Product quantity | Multiple purchases                  |
+| Banking            | Account balance  | Concurrent withdrawal               |
+| Warehouse Transfer | Two warehouses   | Atomicity + deadlock                |
 
 ---
 
