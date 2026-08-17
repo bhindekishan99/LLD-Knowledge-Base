@@ -190,6 +190,42 @@ count.incrementAndGet();
 ```
 
 The video explains that atomic operations can use CPU-level mechanisms such as **Compare-And-Swap (CAS)**.
+<details>
+<summary>About CAS</summary>
+        
+# CAS (Compare-And-Swap)
+
+CAS is an atomic operation used in concurrent programming.
+
+## How CAS Works
+
+CAS checks whether the current value is what we expect.
+
+```text
+Current value = 10
+
+CAS(value, 10, 20)
+```
+
+If the value is still `10`:
+
+```text
+10 → 20
+```
+
+CAS succeeds.
+
+If another thread changed it:
+
+```text
+Current value = 20
+
+CAS(value, 10, 30)
+```
+
+CAS fails because the expected value `10` is no longer present.
+
+</details>
 
 ### Atomic vs Lock
 
