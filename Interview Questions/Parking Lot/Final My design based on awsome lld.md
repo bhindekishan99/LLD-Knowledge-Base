@@ -1,5 +1,7 @@
 # Parking Lot LLD
 
+## Reference: https://github.com/ashishps1/awesome-low-level-design/blob/main/problems/parking-lot.md
+
 ## Requirements
 
 - Support different vehicle types (Bike, Car, Truck).
