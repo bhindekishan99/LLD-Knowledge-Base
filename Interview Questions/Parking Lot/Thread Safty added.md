@@ -57,18 +57,36 @@ class NearestSlotStrategy implements ParkingStrategy {
 
 ## Project Structure
 
-- **`model/ParkingLot.java`** → Represents the complete parking facility/building and manages multiple floors.
-- **`model/Floor.java`** → Represents one parking floor and manages its slots.
-- **`model/Slot.java`** → Represents one parking space and owns its occupancy state.
-- **`model/Vehicle.java`** → Represents the vehicle entering the parking lot.
-- **`model/Ticket.java`** → Represents a parking session/ticket.
-- **`strategy/ParkingStrategy.java`** → Defines how an available slot should be selected.
-- **`strategy/NearestSlotStrategy.java`** → Selects the nearest/first suitable slot and uses `tryPark()` to atomically reserve it.
-- **`strategy/ParkingChargeStrategy.java`** → Defines how parking charges are calculated.
-- **`strategy/PaymentStrategy.java`** → Defines how payment is processed.
-- **`service/ParkingLotService.java`** → Orchestrates the overall parking/unparking flow.
-- **`service/TicketService.java`** → Manages active tickets using `ConcurrentHashMap`.
-- **`Main.java`** → Entry point/client code.
+```text
+parking-lot/
+│
+├── model/
+│   ├── ParkingLot.java
+│   ├── Floor.java
+│   ├── Slot.java
+│   ├── Vehicle.java
+│   └── Ticket.java
+│
+├── strategy/
+│   ├── parking/
+│   │   ├── ParkingStrategy.java
+│   │   └── NearestSlotStrategy.java
+│   │
+│   ├── fee/
+│   │   ├── ParkingChargeStrategy.java
+│   │   └── HourlyParkingChargeStrategy.java
+│   │
+│   └── payment/
+│       ├── PaymentStrategy.java
+│       ├── CardPaymentStrategy.java
+│       └── UPIPaymentStrategy.java
+│
+├── service/
+│   ├── ParkingLotService.java
+│   └── TicketService.java
+│
+└── Main.java
+```
 
 ## Thread-Safety Summary
 
