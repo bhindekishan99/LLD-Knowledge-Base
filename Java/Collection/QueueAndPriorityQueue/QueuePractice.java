@@ -9,6 +9,10 @@ peek()       // view front
 poll()       // remove front
 
 These are safer than add(), element(), and remove() because they return false or null instead of throwing an exception when an operation cannot succeed.
+
+Most efficient way to implement: using ArrayDeque
+ArrayDeque: O(1) amortized time for operations (add, poll, peek). It has minimal memory overhead and is the best general-purpose choice.
+LinkedList: O(1) constant time but comes with heavy JVM garbage collection overhead due to node object allocation
  */
 
 public class QueuePractice {
