@@ -1,0 +1,44 @@
+1. insted of having Display, have observer interface so that in future if we wnat to add
+MonitoringDashboard, LoggingService, MobileAppNotifier, EmergencyAlertSystem, AnalyticsService
+   so design looks extensible
+
+   so have List<observer> in Elevator class,
+   and when moveToNextFloor() -> call observer.notify()
+
+2. ElevatorSelectionStrategy:
+    NearestElevatorStrategy
+    LeastBusyStrategy
+    EstimatedArrivalStrategy
+    AIGroupSchedulingStrategy
+
+3. insted of naming "RequestSelectionStrategy" name it ElevatorSchedulingStrategy
+    LOOKStrategy
+    SCANStrategy
+    FCFSStrategy
+
+4. forgot best way implement Queue, that is ArrayDeque
+5. forgot for loop of Map
+
+6.IMP:
+    I used request just as a floor number, thinking when external req comes
+    it has destination direction and current floor, so this destination direction 
+    will be used by ElevatorSelectionStrategy and then this direction will not be used by
+    ElevatorSchedulingStrategy but ElevatorSelectionStrategy also uses this: because the elevator may be going UP and should not necessarily stop for someone waiting DOWN.
+
+    Request
+        floor
+        RequestType
+
+    RequestType:
+        PICKUP_UP
+        PICKUP_DOWN
+        DESTINATION
+
+8> Your biggest problem: moveTo()
+    That's not compatible with the tick-based simulation requirement.
+    step()
+    ↓
+    one unit of time
+    ↓
+    elevator moves one floor / handles one event
+    

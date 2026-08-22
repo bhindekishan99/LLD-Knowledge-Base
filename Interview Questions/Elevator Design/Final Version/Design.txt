@@ -1,0 +1,112 @@
+┌──────────────────────────────┐
+│      ElevatorController      │
+├──────────────────────────────┤
+│ - elevators: Map<String,     │
+│               Elevator>      │
+│ - selectionStrategy:         │
+│   ElevatorSelectionStrategy  │
+├──────────────────────────────┤
+│ + requestElevator()          │
+│ + requestDestination()       │
+│ + step()                     │
+└──────────────┬───────────────┘
+               │
+               │ 1..*
+               ▼
+┌──────────────────────────────┐
+│          Elevator            │
+├──────────────────────────────┤
+│ - id: String                 │
+│ - currentFloor: int         │
+│ - direction: Direction       │
+│ - state: State               │
+│ - requests: Set<Request>     │
+│ - nextRequest: Request       │
+│ - schedulingStrategy:        │
+│   ElevatorSchedulingStrategy │
+│ - observers:                 │
+│   List<ElevatorObserver>     │
+├──────────────────────────────┤
+│ + addRequest()               │
+│ + removeRequest()            │
+│ + step()                     │
+│ - moveOneFloor()             │
+│ + addObserver()              │
+└───────┬──────────┬───────────┘
+        │          │
+        │          │
+        │          │
+        ▼          ▼
+┌───────────────┐  ┌──────────────────────────────┐
+│   Request     │  │ ElevatorSchedulingStrategy  │
+├───────────────┤  ├──────────────────────────────┤
+│ - floor: int  │  │ + selectNextRequest()       │
+│ - type:       │  └──────────────┬───────────────┘
+│   RequestType │                 △
+├───────────────┤                 │
+│ + equals()    │                 │ implements
+│ + hashCode()  │                 │
+└───────┬───────┘                 │
+        │                         │
+        │                         │
+        │                 ┌───────┴──────────────────┐
+        │                 │ DirectionalScheduling     │
+        │                 │ Strategy                  │
+        │                 └───────────────────────────┘
+        │
+        ▼
+┌──────────────────────┐
+│    RequestType       │
+├──────────────────────┤
+│ PICKUP_UP            │
+│ PICKUP_DOWN          │
+│ DESTINATION          │
+└──────────────────────┘
+
+
+┌────────────────────────────────┐
+│ ElevatorSelectionStrategy      │
+├────────────────────────────────┤
+│ + selectElevator()             │
+└───────────────△────────────────┘
+                │
+                │ implements
+                │
+┌───────────────┴────────────────┐
+│    NearestElevatorStrategy     │
+└────────────────────────────────┘
+
+
+┌──────────────────────────────┐
+│      ElevatorObserver        │
+├──────────────────────────────┤
+│ + update(Elevator)           │
+└───────────────△──────────────┘
+                │
+                │ implements
+                │
+        ┌───────┴────────┐
+        │                │
+        ▼                ▼
+┌──────────────┐   ┌─────────────────────┐
+│   Display    │   │ Future Observers    │
+└──────────────┘   │ MonitoringDashboard │
+                   │ LoggingService      │
+                   │ AnalyticsService    │
+                   └─────────────────────┘
+
+
+┌─────────────────┐
+│    Direction    │
+├─────────────────┤
+│ UP              │
+│ DOWN            │
+│ IDLE            │
+└─────────────────┘
+
+┌─────────────────┐
+│      State      │
+├─────────────────┤
+│ WORKING         │
+| MAINTENANCE     │
+└─────────────────┘

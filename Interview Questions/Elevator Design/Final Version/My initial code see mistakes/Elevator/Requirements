@@ -1,0 +1,60 @@
+• A building with multiple floors and elevators.
+
+• External and internal request handling.
+
+• Intelligent scheduling algorithm for elevator assignment.
+
+• Ability to handle edge cases like power outages or maintenance
+
+
+Elevator, 
+floor 0 to n-1
+Req: 
+    internal: (destinationFloor)
+    ext: (direction,curFloor)
+
+Flow:
+    Ext req:
+        1. user req: (direction, curFloor) ElevatorController
+        2. picks any one elevator e
+        3. e adds this req in it's Q
+        4. based on elevator next floor algo, it choose the req
+
+    Int req:
+        1. user req: (destinationFloor) to spectific elevator e
+        2. e adds this req into it's Q
+        3. based on elevator next floor algo, it choose the req
+
+enums:
+    status:
+        moving,
+        holt
+    directions:
+        up
+        down
+
+Elevator:
+    elevatorId
+    currentFloor
+    direction
+    reqQ
+    status
+
+    move{
+        notifyDisplay
+    }
+
+Display
+    elevatorId, currentFloor, direction, status
+
+ElevatorSelectionStrategy
+    list<Elevators>
+
+    request(dir, curFloor){
+
+    }
+
+NextRequestStrategy:
+    {
+        
+    }

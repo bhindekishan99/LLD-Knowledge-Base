@@ -1,0 +1,34 @@
+ElevatorController
+    │
+    ├── elevators
+    │      └── LinkedHashMap
+    │          (immutable after initialization)
+    │
+    └── ElevatorSelectionStrategy
+           └── stateless → no synchronization needed
+
+
+Elevator
+    │
+    ├── currentFloor ──┐
+    ├── direction      │
+    ├── state          ├── synchronized methods
+    └── requests ──────┘
+           │
+           └── LinkedHashSet
+                +
+             synchronized access
+                +
+             snapshot returned
+
+
+Elevator
+    │
+    └── observers
+           │
+           └── CopyOnWriteArrayList
+
+
+Request
+    │
+    └── immutable
