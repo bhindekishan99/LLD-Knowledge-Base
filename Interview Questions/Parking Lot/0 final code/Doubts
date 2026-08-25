@@ -1,0 +1,5 @@
+1. name of parking lot(same as building)
+2. date type in java for ticket time
+3. what are the method of floor and ParkingLot
+    how getSlot and getFloor works
+    we should can add one slots and floor

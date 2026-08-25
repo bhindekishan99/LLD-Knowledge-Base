@@ -1,0 +1,27 @@
+• A parking lot with multiple slot types.
+
+• Support for bikes, cars, and trucks.
+
+• Dynamic slot allocation based on vehicle size.
+
+• Payment processing with multiple methods.
+
+• Entry ticket issuance and exit validation.
+
+---------------------
+
+Entity:
+    Slot, Vechicle, Ticket, Floor, parkingLot(doubt in name, this is like one building)
+
+TicketServie
+    map<vechicleId, ticket>
+
+ParkingLotService
+
+Happy flow:
+    vehicle -> findParkingSlot -> create ticket(vehicle,ticket)
+    -> makred slot = parked
+
+    vehicleExit -> get the ticket, calculate the fees -> payment -> free the slot
+
+I ParkingStrategy, PaymenetStrategy, ParkingChagneStrategy
