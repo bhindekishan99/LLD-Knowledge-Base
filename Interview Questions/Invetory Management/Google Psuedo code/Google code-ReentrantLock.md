@@ -326,6 +326,7 @@ class Inventory {
         movementListeners.add(listener);
     }
 
+    //
     public void addProduct(
             String warehouseId,
             Product product,
@@ -382,6 +383,7 @@ class Inventory {
             Warehouse warehouse =
                     warehouses.get(warehouseId);
 
+            // Implementation using reentrantLock, here we first check the quantity and then we update the quantity so chcek-then-act is not atomic so we have to use lock, so if we can make check-then-act atomic then we no need to use the lock, so we have make hasSufficient function logic part of compute function only
             boolean isLowStock =
                     warehouse.removeProductStock(
                             sku,
