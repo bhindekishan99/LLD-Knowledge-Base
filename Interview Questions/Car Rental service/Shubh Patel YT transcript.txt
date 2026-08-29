@@ -1,0 +1,896 @@
+1:51
+payment gateway but in future you might want to add some other payment gateways as well.
+1:58
+So that requirement comes under extensibility because you might want to add something in the future but while
+2:07
+adding that you don't want to modify the old code. So that requirement will come
+2:13
+into extensibility. Similarly, let's say currently you are charging your customer based on time but
+2:22
+in future you might want to charge your customer based on event as well. So this
+2:29
+requirement will also go under extensibility category.
+2:35
+The second category is dynamic. So all the requirements where user will provide
+2:40
+the input will go into this category. For example, let's say we are playing
+2:46
+tic-tac-toe. So over there we can ask the size of the
+2:51
+board from the user. We can also ask the number of players from the user. So all those requirement will go under dynamic
+3:00
+category. The third is high traffic or you can say concurrency.
+3:05
+So assume that you have a website which allows the user to book a ticket. Now
+3:13
+there is one movie going on and it has only one ticket available. I
+3:18
+mean one seat available and two users are simultaneously trying to book the
+3:24
+seat. So obviously only one of them should get isn't it? So that is the time
+3:30
+when you have to deal with concurrency.
+3:36
+Okay. So all the requirements related to concurrency will go under this category.
+3:45
+So once you have written down all the requirements, your next goal is to write
+3:51
+down the entities. So you would go through each and every requirements
+3:57
+and write the corresponding entities. For example, let's say in this requirement payment gateways
+4:03
+requirement, the entities could be payment interface, stripe payment
+4:09
+gateway, PayPal payment gateway, payment status enum, etc. Okay. So you you would
+4:18
+write the entities like this just for yourself.
+4:24
+And once you have written down the entities, your next goal would be to connect those
+4:31
+entities and try to understand the flow between those entities
+4:36
+because if you don't even understand the flow then obviously you won't be able to write the code.
+4:44
+So in order to understand the flow we would be drawing the class diagram
+4:51
+in an interview. You probably might not have access to the whiteboard or maybe
+4:57
+you won't have much time to draw the class diagram. So in that case you can directly explain the flow but
+5:05
+in the LLD videos that I'm going to make I will be explaining you the flow
+5:10
+through the class diagram. Okay. And in the class diagram I would
+5:15
+be basically using these two kind of relationships is a relationship is
+5:21
+between class one and class two when class one is a child of class two. Okay.
+5:30
+And has a relationship is between class one and class two when class two is one
+5:36
+of the attribute of class one.
+5:42
+Okay. So once we know the flow of our system,
+5:48
+we would be easily converting that flow into working code.
+5:55
+And these five steps basically would help you in your LLD round and in your
+6:03
+machine coding round as well because the expectation in LLD round is to write
+6:10
+down the requirements properly to write down the entities and to explain the
+6:16
+flow to the interviewer. And in the machine coding round the expectation is to write down the working
+6:23
+code. And in all the LLD videos we would be covering all these steps. That's why
+6:29
+it would be helping you in your LLD and machine coding round. And by the way I
+6:35
+would be explaining this or I would be embedding this particular explanation in
+6:41
+each and every video for the first time visitors. But if you have already seen
+6:47
+this particular part 78 minute part then you can skip that in all the other
+6:52
+videos. Okay. So now let's begin with our current system.
+Understand the system
+7:00
+So let's try to understand this car rental system in brief. So assume that
+7:07
+uh this is one of the branch of a car rental company. This branch is in New
+7:14
+York and that company also has one branch in Boston. Similarly, it has many
+7:20
+more branches in different cities. And let's assume you live in New York and
+7:26
+you want to rent a car. So, there are two cars and one bike available in this
+7:31
+branch at a moment. And you want to rent a car. Okay. So,
+7:38
+you would book a particular car. let's say this car and you would drop that car
+7:46
+to a particular drop location that you select. For example, you want to go to
+7:51
+Boston. So you would select drop location as Boston. So this is all about
+7:56
+the car rental system which we need to know before proceeding to the requirement gathering part. So now let's
+8:03
+move to the requirement gathering part.
+Requirement Gathering
+8:12
+So I've already noted down all the requirements and I've categorized those
+8:17
+requirements into this three categories extensible, dynamic and concurrency.
+8:23
+So let's start with the extensible category. So in the interview
+8:29
+the first question that you can ask to the interviewer could be what types of
+8:34
+vehicles should the system support? Okay. So in the explanation that I did I
+8:41
+used car and bike. So this was just for explanation's sake but in reality the
+8:48
+there would be different types of cars right sedan SUV etc. Then there would be
+8:54
+different types of vehicles as uh I mean bikes as well. So that's what the interviewer is saying. There should be
+9:01
+vehicles like sedan, hatchbacks, SUV etc. And this system should be
+9:09
+extensible enough to support more vehicles in future.
+9:14
+Okay. So this was the first question. The second question you can ask is how
+9:21
+should a vehicle selection be handled when multiple options are available.
+9:27
+So so let's say you want to book one SUV.
+9:34
+So this is one SUV and this is another SUV.
+9:39
+So which of this SUV should be assigned to you? Either this or this. Now again
+9:47
+there should be some algorithm right in order to decide this stuff. So that's what the interviewer says. Interviewer
+9:53
+says that booking should support multiple ways such as cheapest first and
+9:59
+least booked vehicle first. So if this vehicle is booked three times, if this
+10:05
+SUV is booked three times and if this SUV is booked four times and or your
+10:12
+system supports least booked vehicle first then this will be the vehicle
+10:19
+which is going to be assigned to you because it was booked three times which is less than four.
+10:26
+Okay. and it should be extensible so that in
+10:31
+future you can add more algorithms as well apart from this two.
+10:38
+Now the third point that you can ask the interviewer could be will there be multiple ways to calculate rental
+10:44
+charges. So let's say this vehicle was assigned to you but then I have to take some
+10:53
+money from this user right then what should be that money? Should
+10:58
+that money be based on the distance from New York to Boston or based on the number of hours?
+11:06
+Okay, so this is third point. The system should support hourly
+11:14
+based charging and distancebased pricing. I
+11:20
+mean hourly pricing and the distancebased pricing and it should be extensible so that in future I can
+11:26
+charge the customer based on different criterias.
+11:32
+Okay. And the fourth point you can ask is now that we know that this is the
+11:38
+money that we would be charging but how should the user will be paying? Should the user be allowed to pay using UPI
+11:47
+only or it can support other ways as well like credit card, cash etc. So this
+11:53
+was the fourth point and obviously this payment method should also be extensible
+12:01
+like in future I can add more payment methods as well.
+12:06
+Okay. So I hope you have understood all the four points in the extensible
+12:12
+category. Now you can add more points for the learning purpose but in the interview I recommend you to keep less
+12:21
+number of requirements so that you can complete the round in time.
+12:27
+Now the requirements under the dynamic category. So if you have if if you
+12:32
+remember the dynamic category means the user or the admin will give the input.
+12:39
+Okay. So the first point that you can ask is should the system allow adding new branches dynamically?
+12:46
+Yes, it should allow. Okay. Like I as an admin or I mean I should be having
+12:54
+different functionalities like update, delete, add. Basically I should be having CR functionality.
+13:01
+on the branches and similarly each branch would have
+13:06
+many vehicles right. So the same thing I should be having for that as well like I
+13:13
+can add the vehicle remove the vehicle and so on and so forth.
+13:18
+So this should be your second point that is should each branch maintain its own vehicle inventory. Yes. And you should
+13:25
+be able to perform CRUD operation on that.
+13:31
+So I hope you understood all the points in the dynamic category as well. Now
+13:36
+regarding the concurrency part, the question that you can ask is do I need to ensure that no two vehicles are
+13:42
+booked simultaneously? So assume that there is only one bike
+13:48
+available in this branch and
+13:53
+you and me both of us are trying to book one bike then obviously one of us should
+14:00
+get that bike right and that's what the fourth point or sorry first point in the
+14:06
+concurrency says and let's say the answer of the interviewer is yes interviewer wants you
+14:13
+to handle this scenario. Okay. So I hope now all the requirements
+14:20
+are crystal clear. So now let's try to note down each and
+Entities
+14:26
+every entities. So the
+14:31
+procedure to note down each and every entities is very simple. You have to scan all the requirements one by one. So
+14:39
+let's start doing that. The first requirement is what type of vehicles
+14:45
+should the system support. So this is one entity and this entity can be
+14:50
+further divided into sedan, hatchback, SUV
+14:55
+etc. And we can have one enum called as vehicle types.
+15:02
+Okay. The second point says how should vehicle selection be handled when
+15:07
+multiple options are available? So what you can do is you can create or
+15:16
+uh you can note down this entity which is booking. So this is one entity and and this is a
+15:23
+good opportunity to use strategy design pattern over here. Why? because
+15:30
+currently in order to book a particular vehicle your system supports this two
+15:37
+algorithm but in future if I want to add one more algorithm I should be able to do that
+15:45
+without modifying the old code so that's the reason why we can use strategy
+15:50
+design pattern and if we are using the strategy design pattern so obviously we
+15:55
+would have one booking strategy and concrete
+16:01
+booking strategies like cheapest first and least booking strategy.
+16:07
+So total entities in the second point could be booking then one interface then
+16:13
+cheapest first strategy and least booked strategy.
+16:18
+Then the third point says that will there be multiple ways to calculate
+16:24
+rental charges? Yes, there should be. So, so again we
+16:29
+can use strategy design pattern for the same reason that we discussed in the second point and again we would have one
+16:35
+interface for calculating the charging. So we can have
+16:41
+one pricing strategy interface and one
+16:46
+hourly based pricing strategy which is a concrete class and one distancebased
+16:52
+pricing strategy which is another concrete class and they both will be implementing pricing strategy interface.
+17:00
+And uh the fourth point is also the same that it that is it will also
+17:07
+use the strategy design pattern for different payment methods.
+17:14
+So I think I don't need to explain this stuff again and again because
+17:20
+this is going to be covered in multiple LLD problems and I have explained this
+17:26
+in the parking lot as well as in strategy design pattern video and adapter design
+17:33
+pattern video. So let's uh try to note down more
+17:40
+entities. So in this point the branches could be one more entity
+17:47
+and in the second point that is over here should each branch contain its own
+17:54
+vehicle inventory. Okay. So there is no more entity and
+17:59
+over here as well no more entity. So I hope uh now you know which all entities
+18:05
+would be there. Okay. So now let's check out the class
+18:10
+diagram and try to connect those entities and establish a flow
+18:16
+for booking a vehicle and submitting a vehicle.
+UML Diagram
+18:22
+This is a class diagram of car rental system. So let's try to understand this by going through each and every
+18:28
+component one by one. So let's start with the pricing component.
+18:36
+So in the pricing component as we have discussed we would be using pricing strategy. So this is the pricing
+18:42
+strategy interface which has a function called as calculate price which takes four parameters as the input. The first
+18:49
+parameter is vehicle because each and every vehicle will have different price
+18:55
+per kilometer and price per hour. That's the reason why I have passed vehicle as
+19:01
+one of the parameter. The second and third parameter is to calculate the duration for which the particular
+19:06
+vehicle was booked. And the fourth parameter is the distance between the
+19:11
+source and the destination branches. Okay. And we have two different concrete
+19:17
+implementation of this pricing strategy. The first one is distancebased pricing which would calculate the price based on
+19:23
+the distance and second is hourly based pricing which would calculate the price
+19:28
+based on the duration. Right now coming to the payment component. In
+19:36
+the payment component again we have one payment strategy interface and it has a
+19:42
+function called as pay and it would take booking as the input.
+19:49
+So I have passed booking because this booking object would have everything. For example, it would have user data
+19:55
+plus it would also have the amount which that user would be paying.
+20:01
+And we have two different concrete strategies. The first one is card. Second one is cash. So this pay function
+20:07
+would deduct the amount from the card. And this
+20:13
+pay function would deduct the amount through the cash. Now this is the payment processor
+20:19
+context. In here we would be injecting the particular strategy that we want to
+20:25
+use. So if we want to use card based strategy that would be injected over
+20:32
+here through constructor based in injection and whenever we call this pay function it would directly call the pay
+20:38
+function of this card payment. Right? Then
+20:44
+over here I have the abstract of vehicle class. The vehicle class has certain
+20:51
+attributes which would be shared between all the concrete classes like sedan and
+20:56
+SUV both will have their own license plate both will have their own model and so on and so forth. So they have the
+21:04
+status which is uh the status of the vehicle for example they can either be booked available or in maintenance.
+21:12
+Similarly they will have their own price per hour and price per kilometer.
+21:18
+Then this is the vehicle type and this is the amount of time or number of time that particular vehicle was booked. And
+21:25
+this is the boolean variable in order to check whether that vehicle is booked or
+21:31
+not. And this is not the ordinary boolean variable. It is atomic boolean variable. We'll discuss about this in
+21:38
+the code part. And in order to create those vehicles, I am using factory
+21:44
+design pattern. So I have created one vehicle factory in order to centralize
+21:49
+the vehicle creation process. If we don't use this factory, we have to write
+21:54
+if else as condition in the client class which would basically violate the solid principle.
+22:03
+Now in the booking component we have the booking strategy as the interface which has a function called as book vehicle
+22:10
+and it takes list of vehicles as the input. Okay. And this strategy has two
+22:15
+different types of implementation. The first one is cheapest booking strategy which will book that vehicle which is
+22:22
+cheapest. Similarly, the second concrete strategy is least booked vehicle
+22:28
+strategy which will book that vehicle which was booked less number of time.
+22:34
+Okay. Now coming to the brain of this booking system or car booking system
+22:43
+and that is booking service class and I have created this booking service class as a singleton class because I want all
+22:50
+of the users to book through only one service class right
+22:56
+and that's the reason why I have uh made the constructor as private and I have
+23:04
+exposed get instance function which would get the instance of this booking
+23:09
+service class. Okay. And this is that variable which is private. This variable is nothing but a
+23:17
+booking service object. Right? Now this booking service class
+23:24
+has objects of branch repo and the booking repo. So if you remember or if you know
+23:33
+the booking service or the service layer will only handle the logic related to
+23:39
+business all the logic related to data would be handled by the repository
+23:45
+layer. So that's the reason why I will be handling all the CRUD operations like add booking get booking in the
+23:51
+repository layer and the object of this repository layer is present over here.
+23:58
+So this is the booking repo object and we also have the branch repo object.
+24:03
+Okay, again it would have the CRUD operations like add branch, get branch
+24:08
+and it would store the branches in the hashmap wherein the branch this is the branch object and this is the ID in
+24:15
+order to access that branch. Same thing is present in the booking repo as well.
+24:22
+Now this booking service has two main functions. The first one is book vehicle which will book the particular vehicle
+24:29
+from this branch ID and this is the type of the vehicle which we want to book.
+24:35
+This is the duration for which we want to book that vehicle and this is the
+24:41
+payment strategies that we would be using in order to book a particular
+24:46
+vehicle. For example, I can choose cash payment. So here I have to just pass the
+24:52
+object of cash payment strategy. Then this is the pickup branch and drop branch and the distance between those
+24:59
+branches. Similarly, I also have a function called as return vehicle or you
+25:04
+can say submit vehicle. So I will be submitting that vehicle to the drop branch and the input would be the
+25:13
+booking ID. From the booking ID, I will get all the details because the booking
+25:19
+object will have obviously the booking ID, the user who has booked, the vehicle which was booked by that user, the
+25:25
+pickup branch and drop branch, the duration and the status of the booking
+25:31
+and the actual amount as well. So status of the booking means whether that
+25:36
+booking is created or cancelled or completed or confirmed and so on and so
+25:44
+forth. Okay, we'll see this in code. And there is one more class which is
+25:51
+branch class. Each and every branch would have the unique ID associated with
+25:58
+it and the city in which that branch is present and this branch class also has
+26:06
+the vehicles. Now in order to store store the vehicles I am using hashmap.
+26:14
+The key of this hashmap is the type of the vehicle and the value is the actual
+26:19
+object of that type. For example, if I just want to get the bikes present in
+26:25
+this branch. So I will just query through the map, I will say that give me
+26:30
+all the vehicles which are of type bike. So I can directly get the list object
+26:36
+list of bikes. Okay. Now instead of using this hashmap you can use enum map
+26:42
+as well because here the key is the enum and we also have the curl functions in
+26:48
+order to store the vehicles or fetch the vehicles or remove the vehicles from this hashmap. Okay. So I hope now you
+26:56
+understood the entire class diagram of car rental system. So now let's check out the code. So now let's check out the
+Code Output
+27:04
+code. So firstly I'll be showing you the output of our current car rental system.
+27:10
+So I've created the branch repository and the booking repository and there are
+27:15
+two branches in our system. So I've created the two branch and added them into the branch repo. And then I have
+27:23
+created three different vehicles. Two of them are sedan and one is SUV. And I
+27:29
+have created those with the help of vehicle factory. and I have added them into the branch
+27:37
+one. Similarly, I have also created sedan into branch two. So the branch one
+27:43
+will have three vehicles. Branch two will have one vehicle. And I have passed the attributes like number plate of that
+27:50
+vehicle, the the per hour rate of that vehicle, the per kilometer rate of that
+27:55
+vehicle etc. Okay. And this is the user which we
+28:01
+would be using in order to rent a car and submit the car. And this is the time
+28:07
+duration for which this user would rent a car.
+28:12
+I have also created a booking service. So this booking service will have the
+28:18
+branch repo and the booking repo and it will also have the different strategies
+28:24
+like least booked vehicle strategy. So the vehicle which is booked least number of times will be assigned
+28:32
+and similarly instead and similarly we would also have this
+28:39
+pricing strategy. So currently we are using this hourly based pricing strategy.
+28:45
+So I have called this function called as book vehicle and uh I am trying to book
+28:52
+a vehicle called as sedan from the branch B1 and these are different
+28:58
+attributes I mean I want to book that vehicle from start to end and I will
+29:05
+pick the vehicle from branch one and drop that to branch two and this is the
+29:11
+kilometer between branch one and branch two and I would be paying to credit
+29:16
+card. Similarly, I have also called this function one more time over here and all
+29:22
+the parameters are same apart from this. So over here I will be booking through
+29:27
+wallet. Okay, I'll be booking through wallet.
+29:34
+So let's run the code and see the output.
+29:39
+As you can see the booking was successful both of the times because
+29:44
+there were two cedants available in the branch B1
+29:52
+and the amount charged was $125 for the first vehicle and $110 for the second
+29:59
+vehicle. It totally depends on the rate of that vehicle. So we have assigned
+30:06
+different rates to different vehicles. Okay. So those rates are basically used in the strategy the pricing strategy. So
+30:14
+I'll be explaining that algorithm to you uh while I'll be explaining the strategies. So right now I hope you
+30:21
+understood that two bookings were done and both of them are successful. But now let's uh try to simulate the
+30:28
+multi-threaded code as well.
+30:36
+So what I have done over here is I have two threads T_1 and T2 and both of them
+30:43
+will try to book SUV simultaneously from branch
+30:49
+B1. So there is only one SUV in the branch B1 and two different user will
+30:56
+try to book that SUV simultaneously. then only one of them should get right.
+31:02
+So let's see whether both of the thread will be successful in booking or only one thread
+31:09
+will be successful in booking.
+31:15
+So here we can see both of the threads started simultaneously but thread T1
+31:23
+ended unsuccessfully meaning it was unsuccessful
+31:28
+to book the vehicle. Okay. And thread zero was successful in booking the
+31:35
+vehicle. That's why one booking was made. This is the booking ID. This is the user
+31:41
+and this is the pickup and drop time. And this is that SUV and this is the
+31:46
+amount. Okay. So if I rerun this code again
+31:54
+and I keep on rerunning the code, you can see that this time thread zero got
+31:59
+failed. Why? Because we are not concerned that
+32:04
+which thread will be successful in booking the vehicle. The main thing is
+32:10
+if two users are trying to book the vehicle only one of them should get it might be user A or it might be user B I
+32:17
+don't care only one of them should get that is what I care so so this is that
+32:23
+so I hope now you understood that our code is also handling the concurrency part as well so now let's uh see each
+Code Explanation
+32:31
+and every classes which are present in our car rental system.
+32:37
+So let's start with the enums first. So I've segregated all the classes and
+32:43
+created the respective folders and put those classes into those folders. So first we'll see the enums.
+32:52
+So we have a booking status enum. So first the booking would be created. So
+32:58
+when I try to book a vehicle that time the booking would be created.
+33:04
+And when I pay the bill successfully at that time the booking would be confirmed. And when I submit the car to
+33:12
+the drop location at that time the booking would be completed. And if I was unsuccessful while paying
+33:20
+that time the booking would be failed and if I change my mind and cancel the
+33:26
+booking then it would be in the canceled state. I have not added the
+33:31
+functionality for cancelled state because the main goal of this uh problem is to book the vehicle and submit the
+33:38
+vehicle. Then comes the payment status. The
+33:43
+payment would be initially in the pending state and if it is successful then it goes into success state as it
+33:48
+goes in the failed state. Similarly the pricing strategies are of two types. The
+33:54
+first is time based second is distancebased. the vehicle status would be available.
+34:00
+Okay, it could be booked. So if I book the vehicle then it would be uh in the booked state. Then it could
+34:08
+also go in the decommission or in service state.
+34:13
+After that we also have this vehicle type enum which which signifies the type of the
+34:19
+vehicle. We have sedan and SUV in our system but in future you can keep on adding more types.
+34:28
+Now coming to the factory. So we have used factory design pattern in order to centralize the
+34:35
+vehicle creation process so that I can avoid the eels logic in the client
+34:40
+class.
+34:46
+Then this is the booking class. This booking class will have all the metadata
+34:52
+like booking ID, the user who has booked, the vehicle which was booked, the pickup branch, drop branch and so on
+34:58
+and so forth. So initially when booking object would be created at that time the status of the booking would be in the
+35:05
+created phase and the payment of the booking would be in the pending state. Okay, later on it will be changed
+35:13
+and I'm using this two string function so that I can print the booking
+35:19
+uh object in nice way.
+35:25
+Now let's see the vehicle. So we have this vele class and this is
+35:32
+the abstract class. It has all the common attributes which I have already explained in the UML diagram and it also
+35:40
+has this increment book king count function. So this will basically increment this total number of times the
+35:47
+vehicle was booked in in its life. Okay. And the key attribute over here is
+Concurrency
+35:56
+is booked variable. So this is of data type atomic boolean. Okay. So if you
+36:04
+don't know about atomic boolean, I would highly recommend you to study about this. So what this would do is it will
+36:11
+allow us to book a vehicle and that booking will be done atomically
+36:17
+that is only one thread will be allowed to change the state. So if it is false
+36:23
+then only one thread will be able to make it through. So if there are two threads t_1 and
+36:30
+t_sub2 then if initially both are false okay both are
+36:37
+both of the thread sees that this variable was false then only one of them will be successful in converting this
+36:44
+from false to true. Why? Because this variable is atomic in nature.
+Code Explanation
+36:57
+So this was the abstract vehicle class and we also have the concrete vehicle
+37:02
+which is sedan. So all the unique attributes related to the sedan will go
+37:08
+into this class over here. Similarly we have SUV class as well.
+37:16
+Now let's see the branch. So each and every branch will have its unique ID and the
+37:23
+branch will also have a city in which this branch is present and we have some
+37:30
+CRUD operations like getting the vehicles by the type. So for
+37:35
+that what I've done is I have used one hashmap so that I can get the vehicles
+37:41
+by the type more efficiently and I have crowd operations like add
+37:49
+vehicle and remove vehicle. Okay. So I think I have covered all the classes and yeah there is one user class
+37:57
+which uh has this attributes like ID, name and email.
+38:05
+In the booking repository class also I have this CRUD operations like add
+38:11
+booking which will add the booking into this map of bookings. Okay, this string
+38:17
+represents the ID. This booking represents the object corresponding to that ID. So I I can add the bookings.
+38:24
+Sorry. I can add one specific booking into this bookings map or I can fetch a
+38:30
+booking based on the ID or I can remove the booking or I can get all the
+38:35
+bookings in the map from the map. Similarly, I also have the branch
+38:41
+repository which will allow us to perform some CRUD operations like adding
+38:47
+a branch and getting a specific branch.
+38:56
+Now let's see the strategies first. So this is the payment strategy and it
+39:03
+has this abstract function which will be implemented by each and every
+39:08
+concrete strategy. So credit card will have its own function. It will simulate the process and finally it would return
+39:15
+true or false based on the output. Okay.
+39:20
+If if the payment was successful then it would return through.
+39:27
+Now let's talk about the booking strategy.
+Concurrency
+39:34
+So in the booking strategy we have this function called as book vehicle which will take the list of vehicles and we
+39:41
+have two different concrete implementation of the strategy. First is cheapest booking strategy. So in that
+39:47
+function what I'm doing is I am first sorting all the vehicles based on their
+39:55
+based on their price or fees you can say. The first I'm sorting them based on
+40:01
+their fees. After that once they are in the ascending order I
+40:08
+will try to book the vehicle which is at the first
+40:14
+place. So let's say th one and t both of
+40:19
+them tries to book the zerooth indexed vehicle. So they will call this compare
+40:25
+and set function of is booked. So we are basically trying to convert this state
+40:33
+from false to true. So as we already understood that only
+40:40
+one of the thread will be able to convert it from false to true. So if there are two threads which are trying
+40:47
+to occupy or which are trying to book a vehicle at zeroth index then only one of
+40:54
+them will be successful. The one which is successful will return the vehicle okay will get this vehicle
+41:02
+the other which is unsuccessful will go to the first index and so on and so
+41:08
+forth. That's the reason why I am using this for loop. Okay.
+41:13
+Now in the least booked vehicle strategy again we have this function which is booked vehicle
+41:21
+since it is implementing the booking strategy. So over here I am sorting this vehicle based on the booking count. Uh
+41:30
+if if there are two vehicles and one of them is booked five times and another one was booked seven times. So the one
+41:37
+which was booked five times would be at index number zero. After that again I'm doing the same
+41:43
+stuff going through each and every booked to uh sorry going through each and every vehicles in this sorted
+41:48
+vehicles list and trying to book that and finally if I was unsuccessful in
+41:55
+booking the vehicle I would return the null.
+Code Explanation
+42:02
+Now let's see the pricing strategies as
+42:07
+well. So in the pricing strategy we have a function called as calculate price which
+42:14
+will take this four attributes as the input on the basis of which we would be calculating the price.
+42:22
+So the first implementation is hourly based pricing strategy. So over here first I'm trying to find the total
+42:30
+number of minutes or I'm trying to calculate the total number of minutes between the start and the end time.
+42:36
+Okay. And after that I am trying to calculate the total number of hours. I'm doing
+42:43
+that by rounding of the minutes. So for example if I book the car for 43 minutes
+42:50
+then also I will be charged for 1 hour. Okay that is 60 minutes. So once I
+42:57
+calculate the total number of hours for which this vehicle was booked. So I'm multiplying the total number of hours by
+43:04
+the price per hour of that vehicle. Okay. If you remember we have already
+43:10
+assigned price per hour and price per kilometer for each vehicle. So we are calculating that based on that
+43:16
+parameter. Similarly in the distance pricing uh
+43:23
+we already have this uh distance in kilometer as the input. So I'm multiplying the distance in kilometer
+43:29
+with the g with the per kilometer rate of that vehicle. Okay.
+43:37
+Now let's see the last two classes. The first one is payment processor and we already know
+43:44
+that we have to inject the payment strategy over here and we have a function called as pay. So
+43:52
+in that pay function we would call the process payment of the strategy injected. If the strategy is UPI payment
+43:58
+then UPI payments process payment function would be called. If the strategy is card payment then the card
+44:06
+payments process payment function would be called. Now it would return true or false. If it is true then obviously we
+44:13
+would be uh changing the status of the payment. It would become success from
+44:18
+pending state else it would be changed to failed.
+44:25
+Now let's see the last class which is booking service class.
+44:31
+So the booking service class will have the instance
+44:37
+and this is static. Okay, as well as it is private.
+44:42
+If you don't know why I'm making this private, static and volatile, you can watch my singleton design pattern video.
+44:49
+And we also have this repositories. So booking service will be interacting with the branch and booking repository. And
+44:56
+it also has the booking strategy and the pricing strategy. And in future we can
+45:02
+also modify the strategies because we have the setter annotation.
+45:08
+Now the main functions are book vehicle and submit vehicle or I've I've just uh
+45:15
+used this name as written vehicle. So in the book vehicle
+45:21
+first I'll check whether that branch exist in the branch repo or not. If it
+45:27
+does not then I will say that branch not found. Now I know that this is not the good way uh to write the code. Inside
+45:34
+you can use your custom exceptions over here like you can you can create a class called as no
+45:41
+branch or you can say branch not
+45:47
+found. Okay. So you can create your custom exceptions instead of doing this but I
+45:55
+have not done that because obviously this is just for explanation purpose but in interview you can you have to do that
+46:03
+then once I check whether that branch is available or not I will try to filter
+46:10
+out all the vehicles which are available. Okay, I will get all the vehicles
+46:17
+by the vehicle type from that branch and I will filter the vehicles which are not
+46:24
+available. Okay, because some of the vehicles are
+46:29
+maybe maybe in the service servicing state or maybe they are in booked state.
+46:35
+So I will just get those vehicles which are available. Okay.
+46:40
+So once I have the active vehicles, if the active vehicles list is empty, then
+46:46
+I will print this message that is no active vehicles available.
+46:52
+And if I have active vehicles, then I will call the book vehicle function of
+46:57
+the strategy. And we already discussed the booking logic. Okay. And we were
+47:05
+handling the concurrency in that book vehicle function of the strategy. So if one thread was successful in
+47:13
+booking the vehicle, that thread will get this vehicle. If that vehicle is
+47:18
+null, it means that that thread was not successful in booking any vehicle. So that would be null. And in that case,
+47:25
+I'm creating this message which is no vehicle could be booked. And if it was successful, in that case,
+47:31
+I'm trying to calculate the amount using the pricing strategy. And finally I'm trying to create the booking object.
+47:40
+Okay. So once I create the booking object
+47:45
+I would process the payment. So this is the payment strategy which is
+47:54
+given by the user in the input. Okay. So I am injecting that payment
+48:00
+strategy into the payment processor and processor will call the processor. pay function. So it will be either
+48:07
+successful or failed. If it is failed then I will be printing this message which is payment failed. And by the way
+48:15
+here I will roll back the state of this booking. I will make it to false
+48:22
+because in this function in the book vehicle function of the strategy if you remember
+48:28
+we we converted that to true through over here using the parent set function
+48:36
+but now if the payment fails I have to roll back so that's why I'm rolling back
+48:42
+okay but if the payment is successful in that case I will change the booking
+48:49
+status to confirmed and I will also change the
+48:54
+vehicle status to booked and I I will increment the booking count of that vehicle.
+49:00
+Okay, so this was the book vehicle function. So now let's see the return vehicle function. In this function, we
+49:06
+would be returning the vehicle to the drop location. So first we have the
+49:11
+booking ID as a input. So I will get the actual booking object from the booking
+49:17
+ID using the booking repository. So this is that booking object that we got and
+49:24
+I'm doing some checks. After that I'm trying to convert the status to
+49:30
+completed signifying that the booking is now completed and I am making the is booked variable which was atomic to
+49:37
+false. And finally I am adding the vehicle into the drop location. So
+49:44
+that's it. So I hope now you understood the entire car rental system. If you
+49:49
+did, please like the video, subscribe to the channel and share this with your friends.
