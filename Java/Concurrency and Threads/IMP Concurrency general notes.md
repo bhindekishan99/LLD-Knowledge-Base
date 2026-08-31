@@ -100,3 +100,8 @@ Thread 2: A → B
 | Deadlock | Threads wait forever for each other |
 | Lock Ordering | Acquire multiple locks in same order |
 | `ConcurrentHashMap` | Thread-safe map, but multi-step logic may still need protection |
+
+
+## IMP concurrency code
+
+1. See the addProduct() of Inventory [https://github.com/bhindekishan99/LLD-Knowledge-Base/blob/main/Interview Questions/Invetory Management/Google Psuedo code/Final Better concurency and design.md](https://github.com/bhindekishan99/LLD-Knowledge-Base/blob/main/Interview%20Questions/Invetory%20Management/Google%20Psuedo%20code/Final%20Better%20concurency%20and%20design.md)
