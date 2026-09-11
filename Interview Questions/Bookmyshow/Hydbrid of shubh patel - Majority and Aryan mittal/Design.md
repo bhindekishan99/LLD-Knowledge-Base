@@ -316,7 +316,7 @@ for each seat
       ↓
 validate seat does not exists in confirmed seats
       ↓
-tryLock(showId:seatId)
+tryLock(showId:seatId) -> IMP -> Creates LockExpiry(CurrentUserId,now+TTL) if lock does not exist or existing Lock expired
       ↓
 if any lock fails
     → release acquired locks
