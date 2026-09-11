@@ -8,6 +8,7 @@
 ├─────────────────────────────┤
 │ id                          │
 │ price                       │
+│ seatType                    │
 ├─────────────────────────────┤
 │ getId()                     │
 │ getPrice()                  │
@@ -18,9 +19,8 @@
         ▼             ▼
 ┌────────────────┐ ┌────────────────┐
 │ RegularSeat    │ │ ReclinerSeat   │
-├────────────────┤ ├────────────────┤
-│                │ │                │
 └────────────────┘ └────────────────┘
+
 
 ┌─────────────────────────────┐
 │ Theater                     │
@@ -30,7 +30,7 @@
 │ screens                     │
 │                             │
 │ Map<String, Screen>         │
-│ key   = screenId            │
+│ key = screenId              │
 │ value = Screen              │
 ├─────────────────────────────┤
 │ addScreen()                 │
@@ -44,23 +44,11 @@
 │ seats                       │
 │                             │
 │ Map<String, Seat>           │
-│ key   = seatId              │
+│ key = seatId                │
 │ value = Seat                │
 ├─────────────────────────────┤
 │ addSeat()                   │
 │ getSeat()                   │
-└──────────────┬──────────────┘
-               │
-               ▼
-┌─────────────────────────────┐
-│ Seat                        │
-├─────────────────────────────┤
-│ id                          │
-│ price                       │
-├─────────────────────────────┤
-│ getId()                     │
-│ getPrice()                  │
-│ getType()                   │
 └─────────────────────────────┘
 
 
@@ -100,6 +88,104 @@
 └─────────────────────────────┘
 
 
+════════════════════ REPOSITORIES ════════════════════
+
+┌─────────────────────────────┐
+│ TheaterRepository           │
+├─────────────────────────────┤
+│ theaters                    │
+│ Map<String, Theater>        │
+│ key = theaterId             │
+│ value = Theater              │
+├─────────────────────────────┤
+│ save()                      │
+│ get()                       │
+└─────────────────────────────┘
+
+┌─────────────────────────────┐
+│ MovieRepository             │
+├─────────────────────────────┤
+│ movies                      │
+│ Map<String, Movie>          │
+│ key = movieId               │
+│ value = Movie               │
+├─────────────────────────────┤
+│ save()                      │
+│ get()                       │
+└─────────────────────────────┘
+
+┌─────────────────────────────┐
+│ ShowRepository              │
+├─────────────────────────────┤
+│ shows                       │
+│ Map<String, Show>           │
+│ key = showId                │
+│ value = Show                │
+├─────────────────────────────┤
+│ save()                      │
+│ get()                       │
+│ getShowsByMovie()           │
+└─────────────────────────────┘
+
+┌────────────────────────────────────┐
+│ BookingRepository                  │
+├────────────────────────────────────┤
+│ bookings                           │
+│ Map<String, Booking>               │
+│ key = bookingId                    │
+│ value = Booking                    │
+│                                    │
+│ confirmedSeats                     │
+│ Map<String, Set<String>>           │
+│ key = showId                       │
+│ value = Set<seatId>                │
+├────────────────────────────────────┤
+│ save()                             │
+│ get()                              │
+│ getConfirmedSeatIds()              │
+│ markSeatsConfirmed()               │
+└────────────────────────────────────┘
+
+
+════════════════════ SERVICES ════════════════════════
+
+┌─────────────────────────────┐
+│ TheaterService              │
+├─────────────────────────────┤
+│ repository                  │
+├─────────────────────────────┤
+│ createTheater()             │
+│ addScreen()                 │
+└─────────────────────────────┘
+
+┌─────────────────────────────┐
+│ MovieService                │
+├─────────────────────────────┤
+│ repository                  │
+├─────────────────────────────┤
+│ createMovie()               │
+│ getMovie()                  │
+└─────────────────────────────┘
+
+┌─────────────────────────────┐
+│ ShowService                 │
+├─────────────────────────────┤
+│ repository                  │
+├─────────────────────────────┤
+│ createShow()                │
+│ getShow()                   │
+│ getShowsByMovie()           │
+└─────────────────────────────┘
+
+┌────────────────────────────────────┐
+│ SeatAvailabilityService            │
+├────────────────────────────────────┤
+│ bookingRepository                  │
+│ lockProvider                       │
+├────────────────────────────────────┤
+│ getAvailableSeats()                │
+└────────────────────────────────────┘
+
 ┌────────────────────────────────────┐
 │ BookingService                     │
 ├────────────────────────────────────┤
@@ -112,26 +198,27 @@
 │ confirmBooking()                   │
 │ releaseLocks()                     │
 │ createLockKey()                    │
-└───────────┬──────────┬─────────────┘
-            │          │
-            ▼          ▼
-┌────────────────┐  ┌──────────────────────────┐
-│ LockProvider   │  │ BookingRepository        │
-├────────────────┤  ├──────────────────────────┤
-│ tryLock()      │  │ save()                   │
-│ unlock()       │  │ get()                    │
-│ isLockedBy()   │  │ getConfirmedSeatIds()    │
-│ getLockedSeatIds│ │ markSeatsConfirmed()     │
-└───────┬────────┘  └──────────────────────────┘
-        │
-        ▼
+└────────────────────────────────────┘
+
+
+════════════════════ LOCKING ═════════════════════════
+
+┌─────────────────────────────┐
+│ <<interface>> LockProvider  │
+├─────────────────────────────┤
+│ tryLock()                   │
+│ unlock()                    │
+│ isLockedBy()                │
+│ getLockedSeatIds()          │
+└──────────────┬──────────────┘
+               │
+               ▼
 ┌─────────────────────────────┐
 │ InMemoryLockProvider        │
 ├─────────────────────────────┤
 │ locks                       │
-│                             │
 │ Map<String, LockExpiry>     │
-│ key   = showId:seatId       │
+│ key = showId:seatId         │
 │ value = LockExpiry          │
 ├─────────────────────────────┤
 │ tryLock()                   │
@@ -149,6 +236,8 @@
 └─────────────────────────────┘
 
 
+════════════════════ PAYMENT ════════════════════════
+
 ┌────────────────────────────────┐
 │ PaymentStrategy                │
 ├────────────────────────────────┤
@@ -164,103 +253,57 @@
 │ pay()          │ │ pay()          │
 └────────────────┘ └────────────────┘
 
-
-┌────────────────────────────────────┐
-│ SeatAvailabilityService            │
-├────────────────────────────────────┤
-│ bookingRepository                  │
-│ lockProvider                       │
-├────────────────────────────────────┤
-│ getAvailableSeats()                │
-└────────────────────────────────────┘
+┌─────────────────────────────┐
+│ PaymentStrategyFactory      │
+├─────────────────────────────┤
+│ getStrategy()               │
+└─────────────────────────────┘
 ```
 
----
-
-## 2. Important Maps — Key → Value
-
-### `Theater`
+### Service → Repository / Dependency Flow
 
 ```text
-Map<String, Screen>
+TheaterService
+      ↓
+TheaterRepository
 
-screenId → Screen
+MovieService
+      ↓
+MovieRepository
+
+ShowService
+      ↓
+ShowRepository
+
+SeatAvailabilityService
+      ├── BookingRepository
+      └── LockProvider
+
+BookingService
+      ├── BookingRepository
+      ├── LockProvider
+      └── PaymentStrategyFactory
 ```
 
-### `Screen`
+### Enums
 
 ```text
-Map<String, Seat>
+PaymentType
+├── UPI
+└── CARD
 
-seatId → Seat
+BookingStatus
+├── CREATED
+├── CONFIRMED
+└── FAILED
+
+SeatType
+├── REGULAR
+└── RECLINER
 ```
 
-### `TheaterRepository`
 
-```text
-Map<String, Theater>
-
-theaterId → Theater
-```
-
-### `MovieRepository`
-
-```text
-Map<String, Movie>
-
-movieId → Movie
-```
-
-### `ShowRepository`
-
-```text
-Map<String, Show>
-
-showId → Show
-```
-
-### `BookingRepository`
-
-```text
-Map<String, Booking>
-
-bookingId → Booking
-```
-
-Confirmed seats:
-
-```text
-Map<String, Set<String>>
-
-showId → Set<seatId>
-```
-
-Example:
-
-```text
-SHOW1 → {S1, S2, S5}
-SHOW2 → {S1, S3}
-```
-
-### `InMemoryLockProvider`
-
-```text
-Map<String, LockExpiry>
-
-showId:seatId → LockExpiry
-```
-
-Example:
-
-```text
-SHOW1:S1 → LockExpiry
-              ├── ownerUserId = USER1
-              └── deadline = ...
-```
-
----
-
-## 3. `createBooking()`
+## 2. `createBooking()`
 
 ```text
 validate seats
@@ -301,7 +344,7 @@ booking fails
 
 ---
 
-## 4. `confirmBooking()`
+## 3. `confirmBooking()`
 
 ```text
 get booking
@@ -338,7 +381,7 @@ release temporary locks
 
 ---
 
-## 5. Seat Availability
+## 4. Seat Availability
 
 `SeatAvailabilityService`: 
 
@@ -362,7 +405,7 @@ locked seats    → LockProvider
 
 ---
 
-## 6. Seat Lock used in InMemoryLockProvider
+## 5. Seat Lock used in InMemoryLockProvider
 
 ```text
 lock key = showId + ":" + seatId
@@ -387,7 +430,7 @@ Temporary lock has a TTL of 2 minutes.
 
 ---
 
-## 7. Concurrency / Thread Safety
+## 6. Concurrency / Thread Safety
 
 ### Where concurrency is handled
 
@@ -463,7 +506,7 @@ bookingCounter.getAndIncrement()
 
 generates booking IDs safely when multiple users create bookings concurrently.
 
-## 8. Design Patterns
+## 7. Design Patterns
 
 ```text
 Strategy
@@ -484,6 +527,6 @@ Provider abstraction
 
 ---
 
-## 9. 30-Second Interview Explanation
+## 8. 30-Second Interview Explanation
 
 > Theater contains screens and screens contain seats. A Show represents a movie playing on a particular screen at a particular time. When a booking is created, all requested seats are temporarily locked with a TTL. If any seat cannot be locked, previously acquired locks are released and the booking fails. After successful payment, the seats are marked as confirmed and temporary locks are released. Payment uses Strategy + Factory, while repositories and LockProvider abstract data access and locking.
