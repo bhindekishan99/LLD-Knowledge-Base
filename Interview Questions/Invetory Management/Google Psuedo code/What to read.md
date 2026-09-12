@@ -11,4 +11,4 @@ we have Quantity, minimumThresholdQuantity
 1. Design without threading: google code without lock.md
 2. Concept of thread: Google code with thread safty Concept.md
 3. Thread safty using **synchronized keyword**: Google code Synchonized keyword.md
-4. Thread safty using **ReentrantLock**: Google code-ReentrantLock.md
+4. Thread safty using **ReentrantLock**: Google code-ReentrantLock.md -> see Improvement here: 0 Reentrant lock how to use in better way.md
